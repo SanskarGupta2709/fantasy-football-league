@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +40,7 @@ export interface Match {
 
 export interface GoalScorer {
   playerId: string;
+  teamId: string;
   goals: number;
   assists: number;
 }
@@ -133,6 +133,7 @@ export const useSupabaseLeagueData = () => {
           .filter(gs => gs.match_id === match.id)
           .map(gs => ({
             playerId: gs.player_id,
+            teamId: gs.team_id,
             goals: gs.goals,
             assists: gs.assists,
           }))
@@ -341,7 +342,7 @@ export const useSupabaseLeagueData = () => {
           team_a_score: match.teamAScore,
           team_b_score: match.teamBScore,
           match_date: match.date,
-          round: match.round,
+          round: match.round as 'Group Stage' | 'Round of 16' | 'Quarter Finals' | 'Semi Finals' | 'Final',
         })
         .select()
         .single();
@@ -353,7 +354,7 @@ export const useSupabaseLeagueData = () => {
         const goalScorersToInsert = match.goalScorers.map(gs => ({
           match_id: matchData.id,
           player_id: gs.playerId,
-          team_id: teams.find(t => t.players.some(p => p.id === gs.playerId))?.id || '',
+          team_id: gs.teamId,
           goals: gs.goals,
           assists: gs.assists,
         }));

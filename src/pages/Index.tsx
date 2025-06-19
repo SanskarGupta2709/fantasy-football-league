@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -60,7 +59,7 @@ const Index = () => {
       case 'dashboard':
         return (
           <Dashboard 
-            teams={teams}
+            teams={sortedTeams}
             matches={matches}
             topScorers={topScorers}
             sortedTeams={sortedTeams}
@@ -88,7 +87,7 @@ const Index = () => {
       case 'scorers':
         return <TopScorers topScorers={topScorers} />;
       default:
-        return <Dashboard teams={teams} matches={matches} topScorers={topScorers} sortedTeams={sortedTeams} />;
+        return <Dashboard teams={sortedTeams} matches={matches} topScorers={topScorers} sortedTeams={sortedTeams} />;
     }
   };
 
