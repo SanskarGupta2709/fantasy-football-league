@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ const Index = () => {
     resetTournament
   } = useSupabaseLeagueData();
 
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
@@ -50,7 +53,7 @@ const Index = () => {
             <span className="text-4xl animate-bounce">⚽</span>
             <span className="text-2xl font-bold animate-pulse">Fantasy Football League</span>
           </div>
-          <p>Loading your league data...</p>
+          <p>Loading {userName}'s league data...</p>
         </div>
       </div>
     );
@@ -138,27 +141,27 @@ const Index = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return 'League Dashboard';
-      case 'leaderboard': return 'League Table';
+      case 'dashboard': return `${userName}'s League Dashboard`;
+      case 'leaderboard': return `${userName}'s League Table`;
       case 'teams': return 'Team Management';
       case 'players': return 'Player Management';
-      case 'tournament': return 'Tournament Mode';
-      case 'matches': return 'Match Tracker';
+      case 'tournament': return `Let's create your tournament, ${userName}!`;
+      case 'matches': return `Log your match results, ${userName}`;
       case 'scorers': return 'Top Scorers';
-      default: return 'League Dashboard';
+      default: return `${userName}'s League Dashboard`;
     }
   };
 
   const getTabDescription = () => {
     switch (activeTab) {
-      case 'dashboard': return 'Overview of your fantasy football league';
+      case 'dashboard': return `Overview of ${userName}'s fantasy football league`;
       case 'leaderboard': return 'Complete league table with all team statistics';
       case 'teams': return 'Manage teams and players';
       case 'players': return 'Manage all players across teams';
       case 'tournament': return 'Create and manage tournament competitions';
       case 'matches': return 'Add and track match results';
       case 'scorers': return 'View top 5 goal scorers and assists';
-      default: return 'Overview of your fantasy football league';
+      default: return `Overview of ${userName}'s fantasy football league`;
     }
   };
 

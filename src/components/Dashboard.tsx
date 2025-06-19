@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Users, Calendar, Target, Award } from "lucide-react";
 import { Team, Match, Player } from "@/utils/storage";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardProps {
   teams: Team[];
@@ -11,12 +12,25 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: DashboardProps) => {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
+
   const totalGoals = teams.reduce((sum, team) => sum + team.goalsFor, 0);
   const totalMatches = matches.length;
   const leaderTeam = sortedTeams[0];
 
   return (
     <div className="space-y-6">
+      {/* Personalized Header */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          Welcome back, {userName}! ⚽
+        </h2>
+        <p className="text-gray-600 text-lg">
+          Ready to manage your Fantasy Football League? Here's your league overview.
+        </p>
+      </div>
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -74,7 +88,7 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Trophy className="h-5 w-5 text-yellow-500" />
-              <span>League Table (Top 5)</span>
+              <span>{userName}'s League Table (Top 5)</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -139,6 +153,13 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Personalized Footer */}
+      <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 text-center">
+        <p className="text-sm text-gray-600">
+          ⚽ Built for {userName}'s Fantasy Football League ⚽
+        </p>
       </div>
     </div>
   );

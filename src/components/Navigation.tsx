@@ -10,7 +10,10 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+
+  // Extract user's display name from Google auth
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Friend';
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -51,7 +54,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                   textShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
                 }}
               >
-                Fantasy Football League
+                {userName}'s League
               </h1>
             </div>
             <div className="flex space-x-1">
@@ -72,14 +75,19 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
             </div>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => signOut()}
-            className="flex items-center space-x-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </Button>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm font-semibold text-gray-700 bg-gradient-to-r from-green-50 to-blue-50 px-3 py-2 rounded-lg border border-green-200">
+              Hi, {userName}! 👋
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => signOut()}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
+          </div>
         </div>
       </div>
 
