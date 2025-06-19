@@ -26,10 +26,33 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center space-x-2">
-              <span className="text-2xl animate-bounce">⚽</span>
-              <span className="animate-pulse">Fantasy Football League</span>
-            </h1>
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-green-100 to-blue-100 px-4 py-2 rounded-lg border-2 border-gradient-to-r from-green-300 to-blue-300 shadow-lg">
+              <span 
+                className="text-3xl relative"
+                style={{ 
+                  animation: 'bounce 2s ease-in-out infinite',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))',
+                  textShadow: '0 0 10px rgba(34, 197, 94, 0.8)'
+                }}
+              >
+                ⚽
+              </span>
+              <h1 
+                className="text-xl font-black relative"
+                style={{ 
+                  background: 'linear-gradient(45deg, #22c55e, #3b82f6, #8b5cf6)',
+                  backgroundSize: '200% 200%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  animation: 'gradient-shift 3s ease-in-out infinite',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
+                  textShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
+                }}
+              >
+                Fantasy Football League
+              </h1>
+            </div>
             <div className="flex space-x-1">
               {tabs.map(tab => {
                 const Icon = tab.icon;
@@ -58,6 +81,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
           </Button>
         </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `
+      }} />
     </nav>
   );
 };
