@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Zap, Trophy, Users, Target, Calendar, Edit, Trash2, RotateCcw } from 'lucide-react';
 import { Team, Fixture, Match } from '@/hooks/useSupabaseLeagueData';
 import { Fixtures } from './Fixtures';
 import { PlayoffBracket } from './PlayoffBracket';
+import { useToast } from '@/hooks/use-toast';
 
 interface TournamentModeProps {
   teams: Team[];
@@ -39,6 +41,7 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
   const [bestOfSeries, setBestOfSeries] = useState<'1' | '3' | '5'>('1');
   const [activeSubTab, setActiveSubTab] = useState<'setup' | 'fixtures' | 'groups' | 'bracket'>('setup');
   const [tournamentGroups, setTournamentGroups] = useState<TournamentGroup[]>([]);
+  const { toast } = useToast();
 
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -49,17 +52,99 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
     return shuffled;
   };
 
-  const handleResetTournament = () => {
+  const handleResetTournament = async () => {
     if (confirm('Are you sure you want to reset the tournament? This will clear all fixtures, matches, and bracket data.')) {
-      setTournamentType('');
-      setSelectedTeams([]);
-      setBestOfSeries('1');
-      setTournamentGroups([]);
-      setActiveSubTab('setup');
-      if (onResetTournament) {
-        onResetTournament();
+      try {
+        // Reset local state
+        setTournamentType('');
+        setSelectedTeams([]);
+        setBestOfSeries('1');
+        setTournamentGroups([]);
+        setActiveSubTab('setup');
+        
+        // Call the parent reset function to clear backend data
+        if (onResetTournament) {
+          await onResetTournament();
+        }
+        
+        toast({
+          title: "Tournament Reset Successfully",
+          description: "Please select teams to begin a new tournament.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to reset tournament data",
+          variant: "destructive"
+        });
       }
     }
+  };
+
+  const calculateGroupStats = (groupTeams: Team[], groupName: string) => {
+    return groupTeams.map(team => {
+      // Get matches for this team in this group
+      const teamMatches = matches.filter(match => 
+        (match.teamAId === team.id || match.teamBId === team.id) &&
+        fixtures.some(fixture => 
+          fixture.stage === groupName &&
+          ((fixture.teamAId === match.teamAId && fixture.teamBId === match.teamBId) ||
+           (fixture.teamAId === match.teamBId && fixture.teamBId === match.teamAId))
+        )
+      );
+
+      let goalsFor = 0;
+      let goalsAgainst = 0;
+      let points = 0;
+      let wins = 0;
+      let draws = 0;
+      let losses = 0;
+
+      teamMatches.forEach(match => {
+        if (match.teamAId === team.id) {
+          goalsFor += match.teamAScore;
+          goalsAgainst += match.teamBScore;
+          if (match.teamAScore > match.teamBScore) {
+            wins++;
+            points += 3;
+          } else if (match.teamAScore === match.teamBScore) {
+            draws++;
+            points += 1;
+          } else {
+            losses++;
+          }
+        } else {
+          goalsFor += match.teamBScore;
+          goalsAgainst += match.teamAScore;
+          if (match.teamBScore > match.teamAScore) {
+            wins++;
+            points += 3;
+          } else if (match.teamBScore === match.teamAScore) {
+            draws++;
+            points += 1;
+          } else {
+            losses++;
+          }
+        }
+      });
+
+      return {
+        ...team,
+        groupGoalsFor: goalsFor,
+        groupGoalsAgainst: goalsAgainst,
+        groupGoalDifference: goalsFor - goalsAgainst,
+        groupPoints: points,
+        groupWins: wins,
+        groupDraws: draws,
+        groupLosses: losses,
+        matchesPlayed: teamMatches.length
+      };
+    }).sort((a, b) => {
+      // Sort by points, then goal difference, then goals for
+      if (b.groupPoints !== a.groupPoints) return b.groupPoints - a.groupPoints;
+      if (b.groupGoalDifference !== a.groupGoalDifference) return b.groupGoalDifference - a.groupGoalDifference;
+      return b.groupGoalsFor - a.groupGoalsFor;
+    });
   };
 
   const generateOneOffFixtures = () => {
@@ -335,46 +420,103 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
 
   const renderGroups = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-bold">Tournament Groups</h3>
-      {tournamentGroups.map((group, index) => (
-        <Card key={index}>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="h-5 w-5" />
-              <span>{group.name}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {group.teams.map(team => (
-                <div key={team.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                  <span>{team.logo}</span>
-                  <span className="font-medium">{team.name}</span>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold">Tournament Groups</h3>
+        <p className="text-sm text-gray-600">Groups are ranked by Points → Goal Difference → Goals For</p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {tournamentGroups.map((group, groupIndex) => {
+          const groupStats = calculateGroupStats(group.teams, group.name);
+          
+          return (
+            <Card key={groupIndex}>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-lg px-3 py-1">
+                    {group.name.charAt(group.name.length - 1)}
+                  </Badge>
+                  <span>{group.name}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead>Team</TableHead>
+                        <TableHead className="text-center w-16">GF</TableHead>
+                        <TableHead className="text-center w-16">GA</TableHead>
+                        <TableHead className="text-center w-16">GD</TableHead>
+                        <TableHead className="text-center w-16">Pts</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {groupStats.map((team, index) => (
+                        <TableRow key={team.id} className={index < 2 ? "bg-green-50" : ""}>
+                          <TableCell className="font-medium">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                              index === 0 ? 'bg-yellow-500' : 
+                              index === 1 ? 'bg-gray-400' : 
+                              'bg-blue-500'
+                            }`}>
+                              {index + 1}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">{team.logo}</span>
+                              <div>
+                                <p className="font-medium">{team.name}</p>
+                                <p className="text-xs text-gray-500">{team.matchesPlayed} matches</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-medium">{team.groupGoalsFor}</TableCell>
+                          <TableCell className="text-center font-medium">{team.groupGoalsAgainst}</TableCell>
+                          <TableCell className="text-center font-medium">
+                            <span className={team.groupGoalDifference >= 0 ? "text-green-600" : "text-red-600"}>
+                              {team.groupGoalDifference >= 0 ? '+' : ''}{team.groupGoalDifference}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center font-bold text-lg">{team.groupPoints}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <h4 className="font-medium mb-2">Group Fixtures:</h4>
-              <div className="space-y-2">
-                {fixtures
-                  .filter(fixture => fixture.stage === group.name)
-                  .map((fixture, idx) => {
-                    const teamA = teams.find(t => t.id === fixture.teamAId);
-                    const teamB = teams.find(t => t.id === fixture.teamBId);
-                    return (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-white border rounded">
-                        <span>{teamA?.name} vs {teamB?.name}</span>
-                        <Badge variant={fixture.status === 'Completed' ? 'default' : 'outline'}>
-                          {fixture.status}
-                        </Badge>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                
+                {index < 2 && (
+                  <div className="mt-3 p-2 bg-green-50 rounded text-sm text-green-700">
+                    <span className="font-medium">Top 2 teams advance to semifinals</span>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <h4 className="font-medium mb-2 text-sm">Group Fixtures:</h4>
+                  <div className="space-y-1">
+                    {fixtures
+                      .filter(fixture => fixture.stage === group.name)
+                      .map((fixture, idx) => {
+                        const teamA = teams.find(t => t.id === fixture.teamAId);
+                        const teamB = teams.find(t => t.id === fixture.teamBId);
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-2 bg-white border rounded text-sm">
+                            <span>{teamA?.name} vs {teamB?.name}</span>
+                            <Badge variant={fixture.status === 'Completed' ? 'default' : 'outline'} className="text-xs">
+                              {fixture.status}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 

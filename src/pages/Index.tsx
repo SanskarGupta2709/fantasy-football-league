@@ -38,7 +38,8 @@ const Index = () => {
     getTopScorers,
     getSortedTeams,
     isPlayoffUnlocked,
-    reset
+    reset,
+    resetTournament
   } = useSupabaseLeagueData();
 
   if (authLoading || loading) {
@@ -62,22 +63,6 @@ const Index = () => {
   const handleReset = () => {
     if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
       reset();
-    }
-  };
-
-  const handleResetTournament = async () => {
-    try {
-      // Reset tournament-specific data
-      toast({
-        title: "Tournament Reset",
-        description: "Tournament data has been cleared successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reset tournament data",
-        variant: "destructive"
-      });
     }
   };
 
@@ -126,7 +111,7 @@ const Index = () => {
             bracket={bracket}
             onAddFixture={addFixture}
             onUpdateBracket={updateBracket}
-            onResetTournament={handleResetTournament}
+            onResetTournament={resetTournament}
           />
         );
       case 'matches':

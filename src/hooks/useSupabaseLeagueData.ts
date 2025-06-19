@@ -692,6 +692,33 @@ export const useSupabaseLeagueData = () => {
     return groupStageFixtures.length > 0 && groupStageFixtures.every(f => f.status === 'Completed');
   };
 
+  const resetTournament = async () => {
+    if (!user) return;
+
+    try {
+      // Delete tournament-specific data
+      await supabase.from('fixtures').delete().eq('user_id', user.id);
+      await supabase.from('tournament_bracket').delete().eq('user_id', user.id);
+      
+      // Note: We don't delete matches and goal_scorers as they are part of league history
+      // Only tournament-specific fixtures and brackets are removed
+
+      await fetchFixtures();
+      await fetchBracket();
+      toast({
+        title: "Tournament Reset Successfully",
+        description: "Tournament data has been cleared. Please select teams to begin a new tournament.",
+      });
+    } catch (error) {
+      console.error('Error resetting tournament:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset tournament data",
+        variant: "destructive"
+      });
+    }
+  };
+
   const reset = async () => {
     if (!user) return;
 
@@ -739,6 +766,7 @@ export const useSupabaseLeagueData = () => {
     getTopScorers,
     getSortedTeams,
     isPlayoffUnlocked,
-    reset
+    reset,
+    resetTournament
   };
 };
