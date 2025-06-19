@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Medal, Award } from "lucide-react";
-import { Team } from "@/utils/storage";
+import { Team } from '@/hooks/useSupabaseLeagueData';
 
 interface LeaderboardProps {
   teams: Team[];
@@ -56,7 +56,7 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-2 p-3 bg-gray-100 rounded-lg font-semibold text-sm">
               <div className="col-span-1 text-center">#</div>
-              <div className="col-span-4">Team</div>
+              <div className="col-span-3">Team</div>
               <div className="col-span-1 text-center">MP</div>
               <div className="col-span-1 text-center">W</div>
               <div className="col-span-1 text-center">D</div>
@@ -81,7 +81,7 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
                     {getPositionIcon(position)}
                   </div>
                   
-                  <div className="col-span-4 flex items-center space-x-3">
+                  <div className="col-span-3 flex items-center space-x-3">
                     <span className="text-2xl">{team.logo}</span>
                     <div>
                       <p className="font-semibold">{team.name}</p>

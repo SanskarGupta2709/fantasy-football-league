@@ -11,6 +11,7 @@ import { MatchTracker } from '@/components/MatchTracker';
 import { TopScorers } from '@/components/TopScorers';
 import { Fixtures } from '@/components/Fixtures';
 import { PlayoffBracket } from '@/components/PlayoffBracket';
+import { TournamentMode } from '@/components/TournamentMode';
 import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw } from 'lucide-react';
@@ -44,7 +45,10 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
         <div className="text-center">
-          <div className="text-3xl animate-bounce mb-4">⚽</div>
+          <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center space-x-2 mb-4">
+            <span className="text-4xl animate-bounce">⚽</span>
+            <span className="text-2xl font-bold animate-pulse">Fantasy Football League</span>
+          </div>
           <p>Loading your league data...</p>
         </div>
       </div>
@@ -95,6 +99,17 @@ const Index = () => {
             onDeletePlayer={deletePlayer}
           />
         );
+      case 'tournament':
+        return (
+          <TournamentMode
+            teams={teams}
+            fixtures={fixtures}
+            matches={matches}
+            bracket={bracket}
+            onAddFixture={addFixture}
+            onUpdateBracket={updateBracket}
+          />
+        );
       case 'fixtures':
         return (
           <Fixtures
@@ -132,6 +147,7 @@ const Index = () => {
       case 'dashboard': return 'League Dashboard';
       case 'teams': return 'Team Management';
       case 'players': return 'Player Management';
+      case 'tournament': return 'Tournament Mode';
       case 'fixtures': return 'Match Fixtures';
       case 'matches': return 'Match Tracker';
       case 'bracket': return 'Playoff Bracket';
@@ -145,6 +161,7 @@ const Index = () => {
       case 'dashboard': return 'Overview of your fantasy football league';
       case 'teams': return 'Manage teams and players';
       case 'players': return 'Manage all players across teams';
+      case 'tournament': return 'Create and manage tournament competitions';
       case 'fixtures': return 'Schedule upcoming matches';
       case 'matches': return 'Add and track match results';
       case 'bracket': return 'View and manage playoff brackets';

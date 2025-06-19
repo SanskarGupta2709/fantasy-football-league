@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -153,9 +152,17 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
     return teams.find(t => t.id === teamId)?.name || 'Unknown Team';
   };
 
+  const getTeamLogo = (teamId: string) => {
+    return teams.find(t => t.id === teamId)?.logo || '⚽';
+  };
+
   const getPlayerName = (playerId: string) => {
     const player = getAvailablePlayers().find(p => p.id === playerId);
     return player ? `${player.name} (#${player.jerseyNumber})` : 'Unknown Player';
+  };
+
+  const getPlayersByTeam = (match: Match, teamId: string) => {
+    return match.goalScorers.filter(gs => gs.teamId === teamId);
   };
 
   return (
@@ -380,7 +387,7 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
         </Card>
       )}
 
-      {/* Match History */}
+      {/* Enhanced Match History */}
       <div>
         <h4 className="text-lg font-semibold mb-4">Recent Matches</h4>
         {matches.length === 0 ? (
@@ -393,41 +400,77 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
           <div className="space-y-4">
             {matches.slice(0, 5).map(match => (
               <Card key={match.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-center">
-                        <p className="font-semibold">{getTeamName(match.teamAId)}</p>
-                        <p className="text-2xl font-bold">{match.teamAScore}</p>
+                <CardContent className="p-6">
+                  {/* Match Header */}
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center justify-center w-full space-x-8">
+                      <div className="text-center flex-1">
+                        <div className="flex items-center justify-center space-x-2 mb-2">
+                          <span className="text-2xl">{getTeamLogo(match.teamAId)}</span>
+                          <span className="font-semibold text-lg">{getTeamName(match.teamAId)}</span>
+                        </div>
+                        <div className="text-3xl font-bold text-blue-600">{match.teamAScore}</div>
                       </div>
-                      <div className="text-gray-400 font-bold">-</div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold">{match.teamBScore}</p>
-                        <p className="font-semibold">{getTeamName(match.teamBId)}</p>
+                      
+                      <div className="text-2xl font-bold text-gray-400 mx-4">VS</div>
+                      
+                      <div className="text-center flex-1">
+                        <div className="flex items-center justify-center space-x-2 mb-2">
+                          <span className="font-semibold text-lg">{getTeamName(match.teamBId)}</span>
+                          <span className="text-2xl">{getTeamLogo(match.teamBId)}</span>
+                        </div>
+                        <div className="text-3xl font-bold text-blue-600">{match.teamBScore}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge>{match.round}</Badge>
-                      <p className="text-sm text-gray-500 mt-1 flex items-center">
+                    
+                    <div className="text-right ml-8">
+                      <Badge className="mb-2">{match.round}</Badge>
+                      <p className="text-sm text-gray-500 flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
                         {new Date(match.date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   
+                  {/* Team Statistics */}
                   {match.goalScorers.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <h5 className="font-medium mb-2">Match Details:</h5>
-                      <div className="space-y-1">
-                        {match.goalScorers.map((scorer, index) => (
-                          <div key={index} className="text-sm flex items-center space-x-2">
-                            <span>{getPlayerName(scorer.playerId)}</span>
-                            {scorer.goals > 0 && <Badge variant="outline">⚽ {scorer.goals}</Badge>}
-                            {scorer.assists > 0 && <Badge variant="outline">🎯 {scorer.assists}</Badge>}
-                            {scorer.yellowCards > 0 && <Badge variant="outline">🟨 {scorer.yellowCards}</Badge>}
-                            {scorer.redCards > 0 && <Badge variant="outline">🟥</Badge>}
+                    <div className="border-t pt-4">
+                      <div className="grid grid-cols-2 gap-8">
+                        {/* Team A Players */}
+                        <div>
+                          <h5 className="font-medium mb-3 text-center">{getTeamName(match.teamAId)} Players</h5>
+                          <div className="space-y-2">
+                            {getPlayersByTeam(match, match.teamAId).map((scorer, index) => (
+                              <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                                <span className="font-medium">{getPlayerName(scorer.playerId)}</span>
+                                <div className="flex items-center space-x-2">
+                                  {scorer.goals > 0 && <Badge variant="outline" className="text-xs">⚽ {scorer.goals}</Badge>}
+                                  {scorer.assists > 0 && <Badge variant="outline" className="text-xs">🎯 {scorer.assists}</Badge>}
+                                  {scorer.yellowCards > 0 && <Badge variant="outline" className="text-xs">🟨 {scorer.yellowCards}</Badge>}
+                                  {scorer.redCards > 0 && <Badge variant="outline" className="text-xs">🟥</Badge>}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                        
+                        {/* Team B Players */}
+                        <div>
+                          <h5 className="font-medium mb-3 text-center">{getTeamName(match.teamBId)} Players</h5>
+                          <div className="space-y-2">
+                            {getPlayersByTeam(match, match.teamBId).map((scorer, index) => (
+                              <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                                <span className="font-medium">{getPlayerName(scorer.playerId)}</span>
+                                <div className="flex items-center space-x-2">
+                                  {scorer.goals > 0 && <Badge variant="outline" className="text-xs">⚽ {scorer.goals}</Badge>}
+                                  {scorer.assists > 0 && <Badge variant="outline" className="text-xs">🎯 {scorer.assists}</Badge>}
+                                  {scorer.yellowCards > 0 && <Badge variant="outline" className="text-xs">🟨 {scorer.yellowCards}</Badge>}
+                                  {scorer.redCards > 0 && <Badge variant="outline" className="text-xs">🟥</Badge>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}

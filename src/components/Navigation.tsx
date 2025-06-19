@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut } from 'lucide-react';
+import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -16,6 +16,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'players', label: 'Players', icon: UserPlus },
+    { id: 'tournament', label: 'Tournament Mode', icon: Zap },
     { id: 'fixtures', label: 'Fixtures', icon: Calendar },
     { id: 'matches', label: 'Matches', icon: Target },
     { id: 'bracket', label: 'Playoffs', icon: Trophy },
@@ -27,7 +28,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <h1 className="text-xl font-bold text-gray-800">⚽ Football League</h1>
+            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center space-x-2">
+              <span className="text-2xl animate-bounce">⚽</span>
+              <span className="animate-pulse">Fantasy Football League</span>
+            </h1>
             <div className="flex space-x-1">
               {tabs.map(tab => {
                 const Icon = tab.icon;
