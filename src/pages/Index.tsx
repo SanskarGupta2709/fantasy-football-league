@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -89,15 +88,12 @@ const Index = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            <Dashboard 
-              teams={sortedTeams}
-              matches={matches}
-              topScorers={topScorers}
-              sortedTeams={sortedTeams}
-            />
-            <Leaderboard teams={sortedTeams} />
-          </div>
+          <Dashboard 
+            teams={sortedTeams}
+            matches={matches}
+            topScorers={topScorers}
+            sortedTeams={sortedTeams}
+          />
         );
       case 'leaderboard':
         return <Leaderboard teams={sortedTeams} />;
@@ -145,15 +141,12 @@ const Index = () => {
         return <TopScorers topScorers={topScorers} />;
       default:
         return (
-          <div className="space-y-6">
-            <Dashboard 
-              teams={sortedTeams}
-              matches={matches}
-              topScorers={topScorers}
-              sortedTeams={sortedTeams}
-            />
-            <Leaderboard teams={sortedTeams} />
-          </div>
+          <Dashboard 
+            teams={sortedTeams}
+            matches={matches}
+            topScorers={topScorers}
+            sortedTeams={sortedTeams}
+          />
         );
     }
   };

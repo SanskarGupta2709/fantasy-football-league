@@ -140,51 +140,6 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Matches */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5 text-blue-500" />
-            <span>Recent Matches</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {matches.slice(-5).reverse().map((match) => {
-              const teamA = teams.find(t => t.id === match.teamAId);
-              const teamB = teams.find(t => t.id === match.teamBId);
-              
-              return (
-                <div key={match.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <p className="text-lg">{teamA?.logo}</p>
-                      <p className="font-semibold">{teamA?.name}</p>
-                    </div>
-                    
-                    <div className="text-center bg-green-100 px-4 py-2 rounded-lg">
-                      <p className="text-2xl font-bold text-green-800">
-                        {match.teamAScore} - {match.teamBScore}
-                      </p>
-                      <p className="text-sm text-green-600">{match.round}</p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <p className="text-lg">{teamB?.logo}</p>
-                      <p className="font-semibold">{teamB?.name}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">{match.date}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
