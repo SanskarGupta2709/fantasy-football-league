@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Calendar, Trophy } from "lucide-react";
+import { Plus, Calendar, Trophy, Target, Award } from "lucide-react";
 import { Team, Match, Player } from "@/utils/storage";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,6 +36,19 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
 
   const rounds = ['Group Stage', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
 
+  const resetForm = () => {
+    setNewMatch({
+      teamAId: '',
+      teamBId: '',
+      teamAScore: 0,
+      teamBScore: 0,
+      date: new Date().toISOString().split('T')[0],
+      round: 'Group Stage'
+    });
+    setGoalScorers([]);
+    setShowGoalScorerDialog(false);
+  };
+
   const handleAddMatch = () => {
     if (!newMatch.teamAId || !newMatch.teamBId || newMatch.teamAId === newMatch.teamBId) {
       toast({
@@ -63,20 +76,11 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
       goalScorers
     });
 
-    setNewMatch({
-      teamAId: '',
-      teamBId: '',
-      teamAScore: 0,
-      teamBScore: 0,
-      date: new Date().toISOString().split('T')[0],
-      round: 'Group Stage'
-    });
-    setGoalScorers([]);
-    setShowGoalScorerDialog(false);
+    resetForm();
 
     toast({
       title: "Success",
-      description: "Match added successfully!",
+      description: "Match added successfully! You can add another match.",
     });
   };
 
@@ -186,7 +190,7 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                   className="w-full football-gradient"
                   disabled={!newMatch.teamAId || !newMatch.teamBId}
                 >
-                  Set Score & Scorers
+                  Set Score & Stats
                 </Button>
               </div>
             </div>
@@ -199,13 +203,17 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="h-5 w-5" />
-            <span>Match Results ({matches.length})</span>
+            <span>Match History ({matches.length} matches)</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {matches.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No matches played yet. Add your first match above!</p>
+              <div className="text-center py-12">
+                <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">No matches played yet</p>
+                <p className="text-gray-400">Add your first match above to get started!</p>
+              </div>
             ) : (
               matches.slice().reverse().map((match) => {
                 const teamA = teams.find(t => t.id === match.teamAId);
@@ -240,7 +248,7 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                     
                     {match.goalScorers.length > 0 && (
                       <div className="border-t pt-3">
-                        <p className="font-semibold mb-2">Goal Scorers:</p>
+                        <p className="font-semibold mb-2">Player Stats:</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {match.goalScorers.map((scorer, index) => {
                             const team = teams.find(t => t.id === scorer.teamId);
@@ -248,9 +256,17 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                             return (
                               <div key={index} className="flex items-center space-x-2 text-sm">
                                 <span>{team?.logo}</span>
-                                <span>{player?.name}</span>
-                                <span>⚽ {scorer.goals}</span>
-                                {scorer.assists > 0 && <span>🅰️ {scorer.assists}</span>}
+                                <span className="font-medium">{player?.name}</span>
+                                <div className="flex items-center space-x-1">
+                                  <Target className="h-3 w-3 text-green-600" />
+                                  <span>{scorer.goals}</span>
+                                </div>
+                                {scorer.assists > 0 && (
+                                  <div className="flex items-center space-x-1">
+                                    <Award className="h-3 w-3 text-blue-600" />
+                                    <span>{scorer.assists}</span>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -267,16 +283,16 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
 
       {/* Goal Scorer Dialog */}
       <Dialog open={showGoalScorerDialog} onOpenChange={setShowGoalScorerDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Set Match Score & Goal Scorers</DialogTitle>
+            <DialogTitle>Set Match Score & Player Statistics</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6">
             {/* Score Input */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>
+                <Label className="text-lg font-semibold">
                   {teams.find(t => t.id === newMatch.teamAId)?.name} Score
                 </Label>
                 <Input
@@ -284,10 +300,11 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                   min="0"
                   value={newMatch.teamAScore}
                   onChange={(e) => setNewMatch({ ...newMatch, teamAScore: parseInt(e.target.value) || 0 })}
+                  className="text-xl text-center font-bold"
                 />
               </div>
               <div>
-                <Label>
+                <Label className="text-lg font-semibold">
                   {teams.find(t => t.id === newMatch.teamBId)?.name} Score
                 </Label>
                 <Input
@@ -295,6 +312,7 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                   min="0"
                   value={newMatch.teamBScore}
                   onChange={(e) => setNewMatch({ ...newMatch, teamBScore: parseInt(e.target.value) || 0 })}
+                  className="text-xl text-center font-bold"
                 />
               </div>
             </div>
@@ -302,18 +320,18 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
             {/* Goal Scorers */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Goal Scorers</h3>
-                <Button onClick={addGoalScorer} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Scorer
+                <h3 className="text-lg font-semibold">Player Statistics</h3>
+                <Button onClick={addGoalScorer} size="sm" className="flex items-center space-x-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Add Player Stats</span>
                 </Button>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {goalScorers.map((scorer, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-3 items-end">
+                  <div key={index} className="grid grid-cols-5 gap-3 items-end p-4 border rounded-lg bg-gray-50">
                     <div>
-                      <Label>Team</Label>
+                      <Label className="font-medium">Team</Label>
                       <Select 
                         value={scorer.teamId} 
                         onValueChange={(value) => updateGoalScorer(index, { 
@@ -326,17 +344,23 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value={newMatch.teamAId}>
-                            {teams.find(t => t.id === newMatch.teamAId)?.name}
+                            <div className="flex items-center space-x-2">
+                              <span>{teams.find(t => t.id === newMatch.teamAId)?.logo}</span>
+                              <span>{teams.find(t => t.id === newMatch.teamAId)?.name}</span>
+                            </div>
                           </SelectItem>
                           <SelectItem value={newMatch.teamBId}>
-                            {teams.find(t => t.id === newMatch.teamBId)?.name}
+                            <div className="flex items-center space-x-2">
+                              <span>{teams.find(t => t.id === newMatch.teamBId)?.logo}</span>
+                              <span>{teams.find(t => t.id === newMatch.teamBId)?.name}</span>
+                            </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div>
-                      <Label>Player</Label>
+                      <Label className="font-medium">Player</Label>
                       <Select 
                         value={scorer.playerId} 
                         onValueChange={(value) => updateGoalScorer(index, { playerId: value })}
@@ -348,7 +372,7 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                         <SelectContent>
                           {getPlayersForTeam(scorer.teamId).map((player) => (
                             <SelectItem key={player.id} value={player.id}>
-                              #{player.jerseyNumber} {player.name}
+                              #{player.jerseyNumber} {player.name} ({player.position})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -356,12 +380,30 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                     </div>
                     
                     <div>
-                      <Label>Goals</Label>
+                      <Label className="font-medium flex items-center space-x-1">
+                        <Target className="h-4 w-4 text-green-600" />
+                        <span>Goals</span>
+                      </Label>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         value={scorer.goals}
-                        onChange={(e) => updateGoalScorer(index, { goals: parseInt(e.target.value) || 1 })}
+                        onChange={(e) => updateGoalScorer(index, { goals: parseInt(e.target.value) || 0 })}
+                        className="text-center"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="font-medium flex items-center space-x-1">
+                        <Award className="h-4 w-4 text-blue-600" />
+                        <span>Assists</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={scorer.assists}
+                        onChange={(e) => updateGoalScorer(index, { assists: parseInt(e.target.value) || 0 })}
+                        className="text-center"
                       />
                     </div>
                     
@@ -369,19 +411,29 @@ export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) 
                       variant="destructive" 
                       size="sm"
                       onClick={() => removeGoalScorer(index)}
+                      className="mt-6"
                     >
                       Remove
                     </Button>
                   </div>
                 ))}
+                
+                {goalScorers.length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                    <Target className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500">No player stats added yet</p>
+                    <p className="text-sm text-gray-400">Click "Add Player Stats" to record goals and assists</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setShowGoalScorerDialog(false)}>
                 Cancel
               </Button>
               <Button onClick={handleAddMatch} className="football-gradient">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Match
               </Button>
             </div>
