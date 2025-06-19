@@ -44,6 +44,7 @@ const Index = () => {
   } = useSupabaseLeagueData();
 
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
+  const firstName = userName.split(' ')[0];
 
   if (authLoading || loading) {
     return (
@@ -51,9 +52,9 @@ const Index = () => {
         <div className="text-center">
           <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center space-x-2 mb-4">
             <span className="text-4xl animate-bounce">⚽</span>
-            <span className="text-2xl font-bold animate-pulse">Fantasy Football League</span>
+            <span className="text-xl sm:text-2xl font-bold animate-pulse">Fantasy Football League</span>
           </div>
-          <p>Loading {userName}'s league data...</p>
+          <p className="text-sm sm:text-base">Loading {firstName}'s league data...</p>
         </div>
       </div>
     );
@@ -141,27 +142,62 @@ const Index = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return `${userName}'s League Dashboard`;
-      case 'leaderboard': return `${userName}'s League Table`;
+      case 'dashboard': return (
+        <span className="break-words">
+          <span className="hidden sm:inline">{userName}'s League Dashboard</span>
+          <span className="sm:hidden">{firstName}'s Dashboard</span>
+        </span>
+      );
+      case 'leaderboard': return (
+        <span className="break-words">
+          <span className="hidden sm:inline">{userName}'s League Table</span>
+          <span className="sm:hidden">{firstName}'s League Table</span>
+        </span>
+      );
       case 'teams': return 'Team Management';
       case 'players': return 'Player Management';
-      case 'tournament': return `Let's create your tournament, ${userName}!`;
-      case 'matches': return `Log your match results, ${userName}`;
+      case 'tournament': return (
+        <span className="break-words">
+          <span className="hidden sm:inline">Let's create your tournament, {userName}!</span>
+          <span className="sm:hidden">Tournament Setup</span>
+        </span>
+      );
+      case 'matches': return (
+        <span className="break-words">
+          <span className="hidden sm:inline">Log your match results, {userName}</span>
+          <span className="sm:hidden">Match Results</span>
+        </span>
+      );
       case 'scorers': return 'Top Scorers';
-      default: return `${userName}'s League Dashboard`;
+      default: return (
+        <span className="break-words">
+          <span className="hidden sm:inline">{userName}'s League Dashboard</span>
+          <span className="sm:hidden">{firstName}'s Dashboard</span>
+        </span>
+      );
     }
   };
 
   const getTabDescription = () => {
     switch (activeTab) {
-      case 'dashboard': return `Overview of ${userName}'s fantasy football league`;
+      case 'dashboard': return (
+        <span className="break-words text-sm sm:text-base">
+          <span className="hidden sm:inline">Overview of {userName}'s fantasy football league</span>
+          <span className="sm:hidden">League overview</span>
+        </span>
+      );
       case 'leaderboard': return 'Complete league table with all team statistics';
       case 'teams': return 'Manage teams and players';
       case 'players': return 'Manage all players across teams';
       case 'tournament': return 'Create and manage tournament competitions';
       case 'matches': return 'Add and track match results';
       case 'scorers': return 'View top 5 goal scorers and assists';
-      default: return `Overview of ${userName}'s fantasy football league`;
+      default: return (
+        <span className="break-words text-sm sm:text-base">
+          <span className="hidden sm:inline">Overview of {userName}'s fantasy football league</span>
+          <span className="sm:hidden">League overview</span>
+        </span>
+      );
     }
   };
 
@@ -169,24 +205,33 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <main className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">{getTabTitle()}</h2>
-            <p className="text-gray-600">{getTabDescription()}</p>
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+          <div className="overflow-hidden">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 break-words">{getTabTitle()}</h2>
+            <p className="text-gray-600 text-sm sm:text-base break-words">{getTabDescription()}</p>
           </div>
           
           <Button
             variant="outline"
             onClick={handleReset}
-            className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200"
+            className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 shrink-0"
           >
             <RotateCcw className="h-4 w-4" />
-            <span>Reset League</span>
+            <span className="hidden sm:inline">Reset League</span>
+            <span className="sm:hidden">Reset</span>
           </Button>
         </div>
 
         {renderContent()}
+
+        {/* Personalized Footer */}
+        <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 text-center">
+          <p className="text-xs sm:text-sm text-gray-600 break-words">
+            <span className="hidden sm:inline">⚽ Built for {userName}'s Fantasy Football League ⚽</span>
+            <span className="sm:hidden">⚽ {firstName}'s League ⚽</span>
+          </p>
+        </div>
       </main>
     </div>
   );

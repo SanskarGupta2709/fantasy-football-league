@@ -14,6 +14,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
 
   // Extract user's display name from Google auth
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Friend';
+  const firstName = userName.split(' ')[0];
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -27,12 +28,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
 
   return (
     <nav className="bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-3 bg-gradient-to-r from-green-100 to-blue-100 px-4 py-2 rounded-lg border-2 border-gradient-to-r from-green-300 to-blue-300 shadow-lg">
+          <div className="flex items-center space-x-2 sm:space-x-8 overflow-hidden">
+            <div className="flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-green-100 to-blue-100 px-2 sm:px-4 py-2 rounded-lg border-2 border-gradient-to-r from-green-300 to-blue-300 shadow-lg shrink-0">
               <span 
-                className="text-3xl relative"
+                className="text-2xl sm:text-3xl relative"
                 style={{ 
                   animation: 'bounce 2s ease-in-out infinite',
                   filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))',
@@ -42,7 +43,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                 ⚽
               </span>
               <h1 
-                className="text-xl font-black relative"
+                className="text-sm sm:text-xl font-black relative truncate max-w-[120px] sm:max-w-none"
                 style={{ 
                   background: 'linear-gradient(45deg, #22c55e, #3b82f6, #8b5cf6)',
                   backgroundSize: '200% 200%',
@@ -54,10 +55,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                   textShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
                 }}
               >
-                {userName}'s League
+                <span className="hidden sm:inline">{userName}'s League</span>
+                <span className="sm:hidden">{firstName}'s League</span>
               </h1>
             </div>
-            <div className="flex space-x-1">
+            <div className="hidden lg:flex space-x-1 overflow-x-auto">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -65,19 +67,20 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                     key={tab.id}
                     variant={activeTab === tab.id ? "default" : "ghost"}
                     onClick={() => onTabChange(tab.id)}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-2 whitespace-nowrap"
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="hidden xl:inline">{tab.label}</span>
                   </Button>
                 );
               })}
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-sm font-semibold text-gray-700 bg-gradient-to-r from-green-50 to-blue-50 px-3 py-2 rounded-lg border border-green-200">
-              Hi, {userName}! 👋
+          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
+            <div className="text-xs sm:text-sm font-semibold text-gray-700 bg-gradient-to-r from-green-50 to-blue-50 px-2 sm:px-3 py-2 rounded-lg border border-green-200 max-w-[120px] sm:max-w-none truncate">
+              <span className="hidden sm:inline">Hi, {userName}! 👋</span>
+              <span className="sm:hidden">Hi, {firstName}! 👋</span>
             </div>
             <Button
               variant="outline"
@@ -87,6 +90,26 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Sign Out</span>
             </Button>
+          </div>
+        </div>
+        
+        {/* Mobile navigation tabs */}
+        <div className="lg:hidden pb-3 overflow-x-auto">
+          <div className="flex space-x-1 min-w-max">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <Button
+                  key={tab.id}
+                  variant={activeTab === tab.id ? "default" : "ghost"}
+                  onClick={() => onTabChange(tab.id)}
+                  className="flex items-center space-x-2 whitespace-nowrap text-xs"
+                >
+                  <Icon className="h-3 w-3" />
+                  <span>{tab.label}</span>
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
