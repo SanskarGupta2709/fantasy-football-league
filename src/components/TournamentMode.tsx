@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Trophy, Users, Target, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Zap, Trophy, Users, Target, Calendar, Edit, Trash2, RotateCcw } from 'lucide-react';
 import { Team, Fixture, Match } from '@/hooks/useSupabaseLeagueData';
 import { Fixtures } from './Fixtures';
 import { PlayoffBracket } from './PlayoffBracket';
@@ -16,6 +15,7 @@ interface TournamentModeProps {
   bracket: any;
   onAddFixture: (fixture: Omit<Fixture, 'id'>) => void;
   onUpdateBracket: (bracketData: any, stage: string) => void;
+  onResetTournament?: () => void;
 }
 
 type TournamentType = 'oneoff' | 'four-team' | 'eight-team' | 'custom';
@@ -31,7 +31,8 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
   matches,
   bracket,
   onAddFixture,
-  onUpdateBracket
+  onUpdateBracket,
+  onResetTournament
 }) => {
   const [tournamentType, setTournamentType] = useState<TournamentType | ''>('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
@@ -46,6 +47,19 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+  };
+
+  const handleResetTournament = () => {
+    if (confirm('Are you sure you want to reset the tournament? This will clear all fixtures, matches, and bracket data.')) {
+      setTournamentType('');
+      setSelectedTeams([]);
+      setBestOfSeries('1');
+      setTournamentGroups([]);
+      setActiveSubTab('setup');
+      if (onResetTournament) {
+        onResetTournament();
+      }
+    }
   };
 
   const generateOneOffFixtures = () => {
@@ -374,6 +388,15 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
           </h2>
           <p className="text-gray-600">Create and manage tournament competitions</p>
         </div>
+        
+        <Button
+          variant="outline"
+          onClick={handleResetTournament}
+          className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 text-red-600"
+        >
+          <RotateCcw className="h-4 w-4" />
+          <span>Reset Tournament</span>
+        </Button>
       </div>
 
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">

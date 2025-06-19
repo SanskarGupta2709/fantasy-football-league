@@ -2,6 +2,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Medal, Award } from "lucide-react";
 import { Team } from '@/hooks/useSupabaseLeagueData';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface LeaderboardProps {
   teams: Team[];
@@ -19,26 +27,26 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
   const getPositionIcon = (position: number) => {
     switch (position) {
       case 1:
-        return <Trophy className="h-6 w-6 text-yellow-500 trophy-shine" />;
+        return <Trophy className="h-5 w-5 text-yellow-500 trophy-shine" />;
       case 2:
-        return <Medal className="h-6 w-6 text-gray-400" />;
+        return <Medal className="h-5 w-5 text-gray-400" />;
       case 3:
-        return <Award className="h-6 w-6 text-orange-500" />;
+        return <Award className="h-5 w-5 text-orange-500" />;
       default:
-        return <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">{position}</div>;
+        return <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">{position}</div>;
     }
   };
 
   const getPositionColor = (position: number) => {
     switch (position) {
       case 1:
-        return 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200';
+        return 'bg-gradient-to-r from-yellow-50 to-yellow-100';
       case 2:
-        return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200';
+        return 'bg-gradient-to-r from-gray-50 to-gray-100';
       case 3:
-        return 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200';
+        return 'bg-gradient-to-r from-orange-50 to-orange-100';
       default:
-        return 'bg-white border-gray-200';
+        return 'bg-white hover:bg-gray-50';
     }
   };
 
@@ -52,86 +60,89 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-2 p-3 bg-gray-100 rounded-lg font-semibold text-sm">
-              <div className="col-span-1 text-center">#</div>
-              <div className="col-span-3">Team</div>
-              <div className="col-span-1 text-center">MP</div>
-              <div className="col-span-1 text-center">W</div>
-              <div className="col-span-1 text-center">D</div>
-              <div className="col-span-1 text-center">L</div>
-              <div className="col-span-1 text-center">GF</div>
-              <div className="col-span-1 text-center">GA</div>
-              <div className="col-span-1 text-center">GD</div>
-              <div className="col-span-1 text-center">Pts</div>
-            </div>
-
-            {/* Team Rows */}
-            {sortedTeams.map((team, index) => {
-              const position = index + 1;
-              const goalDifference = team.goalsFor - team.goalsAgainst;
-              
-              return (
-                <div
-                  key={team.id}
-                  className={`grid grid-cols-12 gap-2 p-3 rounded-lg border transition-all hover:shadow-md ${getPositionColor(position)}`}
-                >
-                  <div className="col-span-1 flex justify-center items-center">
-                    {getPositionIcon(position)}
-                  </div>
-                  
-                  <div className="col-span-3 flex items-center space-x-3">
-                    <span className="text-2xl">{team.logo}</span>
-                    <div>
-                      <p className="font-semibold">{team.name}</p>
-                      <p className="text-xs text-gray-600">{team.manager}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold">{team.matchesPlayed}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold text-green-600">{team.wins}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold text-yellow-600">{team.draws}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold text-red-600">{team.losses}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold">{team.goalsFor}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-semibold">{team.goalsAgainst}</span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className={`font-semibold ${goalDifference > 0 ? 'text-green-600' : goalDifference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {goalDifference > 0 ? '+' : ''}{goalDifference}
-                    </span>
-                  </div>
-                  
-                  <div className="col-span-1 text-center flex items-center justify-center">
-                    <span className="font-bold text-lg text-blue-600">{team.points}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {teams.length === 0 && (
+          {teams.length === 0 ? (
             <div className="text-center py-12">
               <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No teams in the league yet. Add some teams to get started!</p>
             </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12 text-center">#</TableHead>
+                  <TableHead>Team</TableHead>
+                  <TableHead className="text-center">MP</TableHead>
+                  <TableHead className="text-center">W</TableHead>
+                  <TableHead className="text-center">D</TableHead>
+                  <TableHead className="text-center">L</TableHead>
+                  <TableHead className="text-center">GF</TableHead>
+                  <TableHead className="text-center">GA</TableHead>
+                  <TableHead className="text-center">GD</TableHead>
+                  <TableHead className="text-center">Pts</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedTeams.map((team, index) => {
+                  const position = index + 1;
+                  const goalDifference = team.goalsFor - team.goalsAgainst;
+                  
+                  return (
+                    <TableRow
+                      key={team.id}
+                      className={`transition-all ${getPositionColor(position)}`}
+                    >
+                      <TableCell className="text-center">
+                        {getPositionIcon(position)}
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">{team.logo}</span>
+                          <div>
+                            <p className="font-semibold">{team.name}</p>
+                            <p className="text-xs text-gray-600">{team.manager}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold">{team.matchesPlayed}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold text-green-600">{team.wins}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold text-yellow-600">{team.draws}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold text-red-600">{team.losses}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold">{team.goalsFor}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-semibold">{team.goalsAgainst}</span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className={`font-semibold ${goalDifference > 0 ? 'text-green-600' : goalDifference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                          {goalDifference > 0 ? '+' : ''}{goalDifference}
+                        </span>
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <span className="font-bold text-lg text-blue-600">{team.points}</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

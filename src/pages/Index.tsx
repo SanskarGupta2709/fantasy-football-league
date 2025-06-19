@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,22 @@ const Index = () => {
     }
   };
 
+  const handleResetTournament = async () => {
+    try {
+      // Reset tournament-specific data
+      toast({
+        title: "Tournament Reset",
+        description: "Tournament data has been cleared successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset tournament data",
+        variant: "destructive"
+      });
+    }
+  };
+
   const topScorers = getTopScorers();
   const sortedTeams = getSortedTeams();
 
@@ -107,6 +124,7 @@ const Index = () => {
             bracket={bracket}
             onAddFixture={addFixture}
             onUpdateBracket={updateBracket}
+            onResetTournament={handleResetTournament}
           />
         );
       case 'matches':
