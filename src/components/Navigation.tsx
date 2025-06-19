@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, Calendar, Target } from "lucide-react";
+import { Trophy, Users, Calendar, Target, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavigationProps {
   activeTab: string;
@@ -8,6 +9,8 @@ interface NavigationProps {
 }
 
 export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
+  const { user, signOut } = useAuth();
+  
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Trophy },
     { id: 'teams', label: 'Teams', icon: Users },
@@ -29,23 +32,42 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             </h1>
           </div>
           
-          <div className="flex space-x-1">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <Button
-                key={id}
-                variant={activeTab === id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onTabChange(id)}
-                className={`flex items-center space-x-2 transition-all duration-300 ${
-                  activeTab === id 
-                    ? 'football-gradient text-white shadow-lg transform scale-105' 
-                    : 'hover:bg-green-100 hover:shadow-md'
-                }`}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </Button>
-            ))}
+          <div className="flex items-center space-x-4">
+            <div className="flex space-x-1">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <Button
+                  key={id}
+                  variant={activeTab === id ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => onTabChange(id)}
+                  className={`flex items-center space-x-2 transition-all duration-300 ${
+                    activeTab === id 
+                      ? 'football-gradient text-white shadow-lg transform scale-105' 
+                      : 'hover:bg-green-100 hover:shadow-md'
+                  }`}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </Button>
+              ))}
+            </div>
+            
+            {user && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {user.user_metadata?.full_name || user.email}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={signOut}
+                  className="flex items-center space-x-1"
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

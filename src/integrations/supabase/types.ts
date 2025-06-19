@@ -9,7 +9,201 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      goal_scorers: {
+        Row: {
+          assists: number
+          goals: number
+          id: string
+          match_id: string
+          player_id: string
+          team_id: string
+        }
+        Insert: {
+          assists?: number
+          goals?: number
+          id?: string
+          match_id: string
+          player_id: string
+          team_id: string
+        }
+        Update: {
+          assists?: number
+          goals?: number
+          id?: string
+          match_id?: string
+          player_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_scorers_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_scorers_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_scorers_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          match_date: string
+          round: Database["public"]["Enums"]["match_round"]
+          team_a_id: string
+          team_a_score: number
+          team_b_id: string
+          team_b_score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_date: string
+          round: Database["public"]["Enums"]["match_round"]
+          team_a_id: string
+          team_a_score?: number
+          team_b_id: string
+          team_b_score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_date?: string
+          round?: Database["public"]["Enums"]["match_round"]
+          team_a_id?: string
+          team_a_score?: number
+          team_b_id?: string
+          team_b_score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          assists: number
+          created_at: string
+          goals: number
+          id: string
+          jersey_number: number
+          name: string
+          position: Database["public"]["Enums"]["player_position"]
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          assists?: number
+          created_at?: string
+          goals?: number
+          id?: string
+          jersey_number: number
+          name: string
+          position: Database["public"]["Enums"]["player_position"]
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          assists?: number
+          created_at?: string
+          goals?: number
+          id?: string
+          jersey_number?: number
+          name?: string
+          position?: Database["public"]["Enums"]["player_position"]
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          draws: number
+          goals_against: number
+          goals_for: number
+          id: string
+          logo: string
+          losses: number
+          manager: string
+          matches_played: number
+          name: string
+          points: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          draws?: number
+          goals_against?: number
+          goals_for?: number
+          id?: string
+          logo: string
+          losses?: number
+          manager: string
+          matches_played?: number
+          name: string
+          points?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          draws?: number
+          goals_against?: number
+          goals_for?: number
+          id?: string
+          logo?: string
+          losses?: number
+          manager?: string
+          matches_played?: number
+          name?: string
+          points?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +212,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      match_round:
+        | "Group Stage"
+        | "Round of 16"
+        | "Quarter Finals"
+        | "Semi Finals"
+        | "Final"
+      player_position: "Forward" | "Midfielder" | "Defender" | "Goalkeeper"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +333,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      match_round: [
+        "Group Stage",
+        "Round of 16",
+        "Quarter Finals",
+        "Semi Finals",
+        "Final",
+      ],
+      player_position: ["Forward", "Midfielder", "Defender", "Goalkeeper"],
+    },
   },
 } as const

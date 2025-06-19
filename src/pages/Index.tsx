@@ -1,22 +1,25 @@
 
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
 import { TeamsManagement } from '@/components/TeamsManagement';
 import { MatchTracker } from '@/components/MatchTracker';
-import { Leaderboard } from '@/components/Leaderboard';
 import { TopScorers } from '@/components/TopScorers';
-import { useLeagueData } from '@/hooks/useLeagueData';
+import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
+import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw } from 'lucide-react';
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const {
     teams,
     matches,
+    loading,
     addTeam,
     updateTeam,
     deleteTeam,
@@ -26,15 +29,26 @@ const Index = () => {
     getTopScorers,
     getSortedTeams,
     reset
-  } = useLeagueData();
+  } = useSupabaseLeagueData();
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+        <div className="text-center">
+          <div className="text-3xl animate-bounce mb-4">⚽</div>
+          <p>Loading your league data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const handleReset = () => {
     if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
       reset();
-      toast({
-        title: "League Reset",
-        description: "All data has been cleared and sample data has been loaded.",
-      });
     }
   };
 
@@ -74,7 +88,7 @@ const Index = () => {
       case 'scorers':
         return <TopScorers topScorers={topScorers} />;
       default:
-        return <Leaderboard teams={sortedTeams} />;
+        return <Dashboard teams={teams} matches={matches} topScorers={topScorers} sortedTeams={sortedTeams} />;
     }
   };
 
