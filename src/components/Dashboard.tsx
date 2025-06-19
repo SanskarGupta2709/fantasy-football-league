@@ -20,6 +20,18 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
   const totalMatches = matches.length;
   const leaderTeam = sortedTeams[0];
 
+  // Get top assisters by sorting all players by assists
+  const topAssisters = teams
+    .flatMap(team => 
+      team.players?.map(player => ({
+        ...player,
+        teamName: team.name
+      })) || []
+    )
+    .filter(player => player.assists > 0)
+    .sort((a, b) => b.assists - a.assists)
+    .slice(0, 5);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Personalized Header */}
@@ -137,37 +149,43 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
           </CardContent>
         </Card>
 
-        {/* Top Scorers Preview */}
+        {/* Most Assists */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
-              <Award className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" />
-              <span>Top Scorers</span>
+              <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
+              <span>🥇 Most Assists</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 sm:space-y-3">
-              {topScorers.slice(0, 5).map((player, index) => (
-                <div key={player.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0 ${
-                      index === 0 ? 'bg-yellow-500' : 
-                      index === 1 ? 'bg-gray-400' : 
-                      index === 2 ? 'bg-orange-500' : 'bg-green-500'
-                    }`}>
-                      {index + 1}
+              {topAssisters.length > 0 ? (
+                topAssisters.map((player, index) => (
+                  <div key={player.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0 ${
+                        index === 0 ? 'bg-blue-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-orange-500' : 'bg-green-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm sm:text-base truncate">{player.name}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">{player.teamName}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm sm:text-base truncate">{player.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{player.teamName}</p>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-sm sm:text-lg text-blue-500">🎯 {player.assists}</p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-sm sm:text-lg">⚽ {player.goals}</p>
-                    <p className="text-xs sm:text-sm text-gray-600">🅰️ {player.assists}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Target className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No assists recorded yet</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
