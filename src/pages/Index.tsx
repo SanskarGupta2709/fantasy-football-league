@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
 import { TeamsManagement } from '@/components/TeamsManagement';
+import { PlayerManagement } from '@/components/PlayerManagement';
 import { MatchTracker } from '@/components/MatchTracker';
 import { TopScorers } from '@/components/TopScorers';
 import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
@@ -24,6 +26,7 @@ const Index = () => {
     deleteTeam,
     addPlayer,
     updatePlayer,
+    deletePlayer,
     addMatch,
     getTopScorers,
     getSortedTeams,
@@ -76,6 +79,15 @@ const Index = () => {
             onUpdatePlayer={updatePlayer}
           />
         );
+      case 'players':
+        return (
+          <PlayerManagement
+            teams={teams}
+            onAddPlayer={addPlayer}
+            onUpdatePlayer={updatePlayer}
+            onDeletePlayer={deletePlayer}
+          />
+        );
       case 'matches':
         return (
           <MatchTracker
@@ -101,14 +113,16 @@ const Index = () => {
             <h2 className="text-2xl font-bold text-gray-800">
               {activeTab === 'dashboard' && 'League Dashboard'}
               {activeTab === 'teams' && 'Team Management'}
+              {activeTab === 'players' && 'Player Management'}
               {activeTab === 'matches' && 'Match Tracker'}
               {activeTab === 'scorers' && 'Top Scorers'}
             </h2>
             <p className="text-gray-600">
               {activeTab === 'dashboard' && 'Overview of your fantasy football league'}
               {activeTab === 'teams' && 'Manage teams and players'}
+              {activeTab === 'players' && 'Manage all players across teams'}
               {activeTab === 'matches' && 'Add and track match results'}
-              {activeTab === 'scorers' && 'View top goal scorers and assists'}
+              {activeTab === 'scorers' && 'View top 5 goal scorers and assists'}
             </p>
           </div>
           

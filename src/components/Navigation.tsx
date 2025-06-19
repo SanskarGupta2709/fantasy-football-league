@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, Calendar, Target, LogOut } from "lucide-react";
+import { Trophy, Users, User, Calendar, Target, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface NavigationProps {
@@ -14,6 +14,7 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Trophy },
     { id: 'teams', label: 'Teams', icon: Users },
+    { id: 'players', label: 'Players', icon: User },
     { id: 'matches', label: 'Matches', icon: Calendar },
     { id: 'scorers', label: 'Top Scorers', icon: Target },
   ];

@@ -329,6 +329,32 @@ export const useSupabaseLeagueData = () => {
     }
   };
 
+  const deletePlayer = async (playerId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('players')
+        .delete()
+        .eq('id', playerId);
+
+      if (error) throw error;
+
+      await fetchTeams();
+      toast({
+        title: "Success",
+        description: "Player deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete player",
+        variant: "destructive"
+      });
+    }
+  };
+
   const addMatch = async (match: Omit<Match, 'id'>) => {
     if (!user) return;
 
@@ -452,7 +478,7 @@ export const useSupabaseLeagueData = () => {
         if (b.goals !== a.goals) return b.goals - a.goals;
         return b.assists - a.assists;
       })
-      .slice(0, 10);
+      .slice(0, 5); // Changed from 10 to 5
   };
 
   const getSortedTeams = (): Team[] => {
@@ -499,6 +525,7 @@ export const useSupabaseLeagueData = () => {
     deleteTeam,
     addPlayer,
     updatePlayer,
+    deletePlayer,
     addMatch,
     getTopScorers,
     getSortedTeams,
