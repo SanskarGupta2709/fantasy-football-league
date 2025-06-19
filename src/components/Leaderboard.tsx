@@ -59,90 +59,92 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
             <span>League Table</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {teams.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 px-6">
               <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No teams in the league yet. Add some teams to get started!</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12 text-center">#</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead className="text-center">MP</TableHead>
-                  <TableHead className="text-center">W</TableHead>
-                  <TableHead className="text-center">D</TableHead>
-                  <TableHead className="text-center">L</TableHead>
-                  <TableHead className="text-center">GF</TableHead>
-                  <TableHead className="text-center">GA</TableHead>
-                  <TableHead className="text-center">GD</TableHead>
-                  <TableHead className="text-center">Pts</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedTeams.map((team, index) => {
-                  const position = index + 1;
-                  const goalDifference = team.goalsFor - team.goalsAgainst;
-                  
-                  return (
-                    <TableRow
-                      key={team.id}
-                      className={`transition-all ${getPositionColor(position)}`}
-                    >
-                      <TableCell className="text-center">
-                        {getPositionIcon(position)}
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{team.logo}</span>
-                          <div>
-                            <p className="font-semibold">{team.name}</p>
-                            <p className="text-xs text-gray-600">{team.manager}</p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16 text-center sticky left-0 bg-white">#</TableHead>
+                    <TableHead className="min-w-[200px] sticky left-16 bg-white">Team</TableHead>
+                    <TableHead className="text-center w-16">MP</TableHead>
+                    <TableHead className="text-center w-16">W</TableHead>
+                    <TableHead className="text-center w-16">D</TableHead>
+                    <TableHead className="text-center w-16">L</TableHead>
+                    <TableHead className="text-center w-16">GF</TableHead>
+                    <TableHead className="text-center w-16">GA</TableHead>
+                    <TableHead className="text-center w-16">GD</TableHead>
+                    <TableHead className="text-center w-20">Pts</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedTeams.map((team, index) => {
+                    const position = index + 1;
+                    const goalDifference = team.goalsFor - team.goalsAgainst;
+                    
+                    return (
+                      <TableRow
+                        key={team.id}
+                        className={`transition-all ${getPositionColor(position)}`}
+                      >
+                        <TableCell className="text-center sticky left-0 bg-inherit">
+                          {getPositionIcon(position)}
+                        </TableCell>
+                        
+                        <TableCell className="sticky left-16 bg-inherit">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-2xl">{team.logo}</span>
+                            <div>
+                              <p className="font-semibold">{team.name}</p>
+                              <p className="text-xs text-gray-600">{team.manager}</p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold">{team.matchesPlayed}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold text-green-600">{team.wins}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold text-yellow-600">{team.draws}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold text-red-600">{team.losses}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold">{team.goalsFor}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-semibold">{team.goalsAgainst}</span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className={`font-semibold ${goalDifference > 0 ? 'text-green-600' : goalDifference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                          {goalDifference > 0 ? '+' : ''}{goalDifference}
-                        </span>
-                      </TableCell>
-                      
-                      <TableCell className="text-center">
-                        <span className="font-bold text-lg text-blue-600">{team.points}</span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-semibold">{team.matchesPlayed}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-green-600">{team.wins}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-yellow-600">{team.draws}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-red-600">{team.losses}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-green-700">{team.goalsFor}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-red-700">{team.goalsAgainst}</span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className={`font-bold text-lg ${goalDifference > 0 ? 'text-green-600' : goalDifference < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                            {goalDifference > 0 ? '+' : ''}{goalDifference}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-xl text-blue-600">{team.points}</span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -152,30 +154,38 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="font-semibold mb-1">Abbreviations:</p>
-              <p>MP - Matches Played</p>
-              <p>W - Wins</p>
-              <p>D - Draws</p>
-              <p>L - Losses</p>
+              <p className="font-semibold mb-2 text-blue-600">Abbreviations:</p>
+              <div className="space-y-1">
+                <p><span className="font-medium">MP</span> - Matches Played</p>
+                <p><span className="font-medium">W</span> - Wins</p>
+                <p><span className="font-medium">D</span> - Draws</p>
+                <p><span className="font-medium">L</span> - Losses</p>
+              </div>
             </div>
             <div>
-              <p className="font-semibold mb-1">Scoring:</p>
-              <p>GF - Goals For</p>
-              <p>GA - Goals Against</p>
-              <p>GD - Goal Difference</p>
-              <p>Pts - Points</p>
+              <p className="font-semibold mb-2 text-green-600">Scoring:</p>
+              <div className="space-y-1">
+                <p><span className="font-medium text-green-700">GF</span> - Goals For</p>
+                <p><span className="font-medium text-red-700">GA</span> - Goals Against</p>
+                <p><span className="font-medium">GD</span> - Goal Difference</p>
+                <p><span className="font-medium text-blue-600">Pts</span> - Points</p>
+              </div>
             </div>
             <div>
-              <p className="font-semibold mb-1">Point System:</p>
-              <p>Win: 3 points</p>
-              <p>Draw: 1 point</p>
-              <p>Loss: 0 points</p>
+              <p className="font-semibold mb-2 text-purple-600">Point System:</p>
+              <div className="space-y-1">
+                <p><span className="text-green-600">Win:</span> 3 points</p>
+                <p><span className="text-yellow-600">Draw:</span> 1 point</p>
+                <p><span className="text-red-600">Loss:</span> 0 points</p>
+              </div>
             </div>
             <div>
-              <p className="font-semibold mb-1">Tie Breakers:</p>
-              <p>1. Points</p>
-              <p>2. Goal Difference</p>
-              <p>3. Goals Scored</p>
+              <p className="font-semibold mb-2 text-orange-600">Tie Breakers:</p>
+              <div className="space-y-1">
+                <p>1. Points</p>
+                <p>2. Goal Difference</p>
+                <p>3. Goals Scored</p>
+              </div>
             </div>
           </div>
         </CardContent>

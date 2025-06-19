@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap } from 'lucide-react';
+import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -14,6 +14,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'leaderboard', label: 'League Table', icon: Table },
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'players', label: 'Players', icon: UserPlus },
     { id: 'tournament', label: 'Tournament Mode', icon: Zap },

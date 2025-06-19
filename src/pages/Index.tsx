@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
+import { Leaderboard } from '@/components/Leaderboard';
 import { TeamsManagement } from '@/components/TeamsManagement';
 import { PlayerManagement } from '@/components/PlayerManagement';
 import { MatchTracker } from '@/components/MatchTracker';
@@ -88,13 +89,18 @@ const Index = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <Dashboard 
-            teams={sortedTeams}
-            matches={matches}
-            topScorers={topScorers}
-            sortedTeams={sortedTeams}
-          />
+          <div className="space-y-6">
+            <Dashboard 
+              teams={sortedTeams}
+              matches={matches}
+              topScorers={topScorers}
+              sortedTeams={sortedTeams}
+            />
+            <Leaderboard teams={sortedTeams} />
+          </div>
         );
+      case 'leaderboard':
+        return <Leaderboard teams={sortedTeams} />;
       case 'teams':
         return (
           <TeamsManagement
@@ -138,13 +144,24 @@ const Index = () => {
       case 'scorers':
         return <TopScorers topScorers={topScorers} />;
       default:
-        return <Dashboard teams={sortedTeams} matches={matches} topScorers={topScorers} sortedTeams={sortedTeams} />;
+        return (
+          <div className="space-y-6">
+            <Dashboard 
+              teams={sortedTeams}
+              matches={matches}
+              topScorers={topScorers}
+              sortedTeams={sortedTeams}
+            />
+            <Leaderboard teams={sortedTeams} />
+          </div>
+        );
     }
   };
 
   const getTabTitle = () => {
     switch (activeTab) {
       case 'dashboard': return 'League Dashboard';
+      case 'leaderboard': return 'League Table';
       case 'teams': return 'Team Management';
       case 'players': return 'Player Management';
       case 'tournament': return 'Tournament Mode';
@@ -157,6 +174,7 @@ const Index = () => {
   const getTabDescription = () => {
     switch (activeTab) {
       case 'dashboard': return 'Overview of your fantasy football league';
+      case 'leaderboard': return 'Complete league table with all team statistics';
       case 'teams': return 'Manage teams and players';
       case 'players': return 'Manage all players across teams';
       case 'tournament': return 'Create and manage tournament competitions';
