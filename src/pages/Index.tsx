@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -110,29 +109,12 @@ const Index = () => {
             onUpdateBracket={updateBracket}
           />
         );
-      case 'fixtures':
-        return (
-          <Fixtures
-            teams={teams}
-            fixtures={fixtures}
-            onAddFixture={addFixture}
-          />
-        );
       case 'matches':
         return (
           <MatchTracker
             teams={teams}
             matches={matches}
             onAddMatch={addMatch}
-          />
-        );
-      case 'bracket':
-        return (
-          <PlayoffBracket
-            teams={teams}
-            bracket={bracket}
-            onUpdateBracket={updateBracket}
-            isUnlocked={isPlayoffUnlocked()}
           />
         );
       case 'scorers':
@@ -148,9 +130,7 @@ const Index = () => {
       case 'teams': return 'Team Management';
       case 'players': return 'Player Management';
       case 'tournament': return 'Tournament Mode';
-      case 'fixtures': return 'Match Fixtures';
       case 'matches': return 'Match Tracker';
-      case 'bracket': return 'Playoff Bracket';
       case 'scorers': return 'Top Scorers';
       default: return 'League Dashboard';
     }
@@ -162,9 +142,7 @@ const Index = () => {
       case 'teams': return 'Manage teams and players';
       case 'players': return 'Manage all players across teams';
       case 'tournament': return 'Create and manage tournament competitions';
-      case 'fixtures': return 'Schedule upcoming matches';
       case 'matches': return 'Add and track match results';
-      case 'bracket': return 'View and manage playoff brackets';
       case 'scorers': return 'View top 5 goal scorers and assists';
       default: return 'Overview of your fantasy football league';
     }

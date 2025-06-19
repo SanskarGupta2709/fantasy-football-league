@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Trophy, Users, Target, Calendar } from 'lucide-react';
+import { Zap, Trophy, Users, Target, Calendar, Edit, Trash2 } from 'lucide-react';
 import { Team, Fixture, Match } from '@/hooks/useSupabaseLeagueData';
 import { Fixtures } from './Fixtures';
 import { PlayoffBracket } from './PlayoffBracket';
@@ -20,6 +20,11 @@ interface TournamentModeProps {
 
 type TournamentType = 'oneoff' | 'four-team' | 'eight-team' | 'custom';
 
+interface TournamentGroup {
+  name: string;
+  teams: Team[];
+}
+
 export const TournamentMode: React.FC<TournamentModeProps> = ({
   teams,
   fixtures,
@@ -31,7 +36,8 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
   const [tournamentType, setTournamentType] = useState<TournamentType | ''>('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [bestOfSeries, setBestOfSeries] = useState<'1' | '3' | '5'>('1');
-  const [activeSubTab, setActiveSubTab] = useState<'setup' | 'fixtures' | 'bracket'>('setup');
+  const [activeSubTab, setActiveSubTab] = useState<'setup' | 'fixtures' | 'groups' | 'bracket'>('setup');
+  const [tournamentGroups, setTournamentGroups] = useState<TournamentGroup[]>([]);
 
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -90,6 +96,12 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
     const groupA = shuffledTeams.slice(0, 4);
     const groupB = shuffledTeams.slice(4, 8);
     const fixtures: Omit<Fixture, 'id'>[] = [];
+    
+    // Set groups for display
+    setTournamentGroups([
+      { name: 'Group A', teams: groupA.map(id => teams.find(t => t.id === id)!).filter(Boolean) },
+      { name: 'Group B', teams: groupB.map(id => teams.find(t => t.id === id)!).filter(Boolean) }
+    ]);
     
     // Group A fixtures
     for (let i = 0; i < groupA.length; i++) {
@@ -178,6 +190,7 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
   const subTabs = [
     { id: 'setup', label: 'Tournament Setup', icon: Zap },
     { id: 'fixtures', label: 'Fixtures', icon: Calendar },
+    ...(tournamentType === 'eight-team' ? [{ id: 'groups', label: 'Groups', icon: Users }] : []),
     { id: 'bracket', label: 'Bracket', icon: Trophy },
   ];
 
@@ -306,6 +319,51 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
     </div>
   );
 
+  const renderGroups = () => (
+    <div className="space-y-6">
+      <h3 className="text-xl font-bold">Tournament Groups</h3>
+      {tournamentGroups.map((group, index) => (
+        <Card key={index}>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>{group.name}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {group.teams.map(team => (
+                <div key={team.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                  <span>{team.logo}</span>
+                  <span className="font-medium">{team.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4">
+              <h4 className="font-medium mb-2">Group Fixtures:</h4>
+              <div className="space-y-2">
+                {fixtures
+                  .filter(fixture => fixture.stage === group.name)
+                  .map((fixture, idx) => {
+                    const teamA = teams.find(t => t.id === fixture.teamAId);
+                    const teamB = teams.find(t => t.id === fixture.teamBId);
+                    return (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-white border rounded">
+                        <span>{teamA?.name} vs {teamB?.name}</span>
+                        <Badge variant={fixture.status === 'Completed' ? 'default' : 'outline'}>
+                          {fixture.status}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -343,6 +401,7 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
           onAddFixture={onAddFixture}
         />
       )}
+      {activeSubTab === 'groups' && renderGroups()}
       {activeSubTab === 'bracket' && (
         <PlayoffBracket
           teams={teams}

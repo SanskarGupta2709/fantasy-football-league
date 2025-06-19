@@ -17,9 +17,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'players', label: 'Players', icon: UserPlus },
     { id: 'tournament', label: 'Tournament Mode', icon: Zap },
-    { id: 'fixtures', label: 'Fixtures', icon: Calendar },
     { id: 'matches', label: 'Matches', icon: Target },
-    { id: 'bracket', label: 'Playoffs', icon: Trophy },
     { id: 'scorers', label: 'Top Scorers', icon: Target },
   ];
 

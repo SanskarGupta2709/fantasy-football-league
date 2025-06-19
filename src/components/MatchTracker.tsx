@@ -161,8 +161,42 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
     return player ? `${player.name} (#${player.jerseyNumber})` : 'Unknown Player';
   };
 
-  const getPlayersByTeam = (match: Match, teamId: string) => {
-    return match.goalScorers.filter(gs => gs.teamId === teamId);
+  const getPlayerDisplayName = (playerId: string) => {
+    const player = getAvailablePlayers().find(p => p.id === playerId);
+    return player ? player.name : 'Unknown Player';
+  };
+
+  const getPlayerTeamName = (playerId: string) => {
+    const player = getAvailablePlayers().find(p => p.id === playerId);
+    return player ? player.teamName : 'Unknown Team';
+  };
+
+  const renderMatchEvents = (match: Match) => {
+    const events: Array<{ type: string; player: string; team: string; count?: number }> = [];
+    
+    match.goalScorers.forEach(scorer => {
+      const playerName = getPlayerDisplayName(scorer.playerId);
+      const teamName = getPlayerTeamName(scorer.playerId);
+      
+      if (scorer.goals > 0) {
+        for (let i = 0; i < scorer.goals; i++) {
+          events.push({ type: 'goal', player: playerName, team: teamName });
+        }
+      }
+      if (scorer.assists > 0) {
+        for (let i = 0; i < scorer.assists; i++) {
+          events.push({ type: 'assist', player: playerName, team: teamName });
+        }
+      }
+      if (scorer.yellowCards > 0) {
+        events.push({ type: 'yellow', player: playerName, team: teamName, count: scorer.yellowCards });
+      }
+      if (scorer.redCards > 0) {
+        events.push({ type: 'red', player: playerName, team: teamName });
+      }
+    });
+
+    return events;
   };
 
   return (
@@ -409,7 +443,7 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                           <span className="text-2xl">{getTeamLogo(match.teamAId)}</span>
                           <span className="font-semibold text-lg">{getTeamName(match.teamAId)}</span>
                         </div>
-                        <div className="text-3xl font-bold text-blue-600">{match.teamAScore}</div>
+                        <div className="text-4xl font-bold text-blue-600">{match.teamAScore}</div>
                       </div>
                       
                       <div className="text-2xl font-bold text-gray-400 mx-4">VS</div>
@@ -419,7 +453,7 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                           <span className="font-semibold text-lg">{getTeamName(match.teamBId)}</span>
                           <span className="text-2xl">{getTeamLogo(match.teamBId)}</span>
                         </div>
-                        <div className="text-3xl font-bold text-blue-600">{match.teamBScore}</div>
+                        <div className="text-4xl font-bold text-blue-600">{match.teamBScore}</div>
                       </div>
                     </div>
                     
@@ -432,45 +466,46 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                     </div>
                   </div>
                   
-                  {/* Team Statistics */}
+                  {/* Match Events */}
                   {match.goalScorers.length > 0 && (
                     <div className="border-t pt-4">
-                      <div className="grid grid-cols-2 gap-8">
-                        {/* Team A Players */}
-                        <div>
-                          <h5 className="font-medium mb-3 text-center">{getTeamName(match.teamAId)} Players</h5>
-                          <div className="space-y-2">
-                            {getPlayersByTeam(match, match.teamAId).map((scorer, index) => (
-                              <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                                <span className="font-medium">{getPlayerName(scorer.playerId)}</span>
-                                <div className="flex items-center space-x-2">
-                                  {scorer.goals > 0 && <Badge variant="outline" className="text-xs">⚽ {scorer.goals}</Badge>}
-                                  {scorer.assists > 0 && <Badge variant="outline" className="text-xs">🎯 {scorer.assists}</Badge>}
-                                  {scorer.yellowCards > 0 && <Badge variant="outline" className="text-xs">🟨 {scorer.yellowCards}</Badge>}
-                                  {scorer.redCards > 0 && <Badge variant="outline" className="text-xs">🟥</Badge>}
-                                </div>
-                              </div>
-                            ))}
+                      <h5 className="font-medium mb-3">Match Events</h5>
+                      <div className="space-y-2">
+                        {renderMatchEvents(match).map((event, index) => (
+                          <div key={index} className="flex items-center space-x-2 text-sm bg-gray-50 p-2 rounded">
+                            {event.type === 'goal' && (
+                              <>
+                                <span className="text-lg">⚽</span>
+                                <span className="font-medium">{event.player}</span>
+                                <span className="text-gray-500">({event.team})</span>
+                              </>
+                            )}
+                            {event.type === 'assist' && (
+                              <>
+                                <span className="text-lg">🅰️</span>
+                                <span className="font-medium">{event.player}</span>
+                                <span className="text-gray-500">({event.team})</span>
+                              </>
+                            )}
+                            {event.type === 'yellow' && (
+                              <>
+                                <span className="text-lg">🟨</span>
+                                <span className="font-medium">{event.player}</span>
+                                <span className="text-gray-500">({event.team})</span>
+                                {event.count && event.count > 1 && (
+                                  <Badge variant="outline" className="text-xs">x{event.count}</Badge>
+                                )}
+                              </>
+                            )}
+                            {event.type === 'red' && (
+                              <>
+                                <span className="text-lg">🟥</span>
+                                <span className="font-medium">{event.player}</span>
+                                <span className="text-gray-500">({event.team})</span>
+                              </>
+                            )}
                           </div>
-                        </div>
-                        
-                        {/* Team B Players */}
-                        <div>
-                          <h5 className="font-medium mb-3 text-center">{getTeamName(match.teamBId)} Players</h5>
-                          <div className="space-y-2">
-                            {getPlayersByTeam(match, match.teamBId).map((scorer, index) => (
-                              <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                                <span className="font-medium">{getPlayerName(scorer.playerId)}</span>
-                                <div className="flex items-center space-x-2">
-                                  {scorer.goals > 0 && <Badge variant="outline" className="text-xs">⚽ {scorer.goals}</Badge>}
-                                  {scorer.assists > 0 && <Badge variant="outline" className="text-xs">🎯 {scorer.assists}</Badge>}
-                                  {scorer.yellowCards > 0 && <Badge variant="outline" className="text-xs">🟨 {scorer.yellowCards}</Badge>}
-                                  {scorer.redCards > 0 && <Badge variant="outline" className="text-xs">🟥</Badge>}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   )}

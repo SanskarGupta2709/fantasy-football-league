@@ -20,7 +20,10 @@ const Auth = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
         <div className="text-center">
-          <div className="text-3xl animate-bounce mb-4">⚽</div>
+          <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center space-x-2 mb-4">
+            <span className="text-4xl animate-bounce">⚽</span>
+            <span className="text-2xl font-bold animate-pulse">Fantasy Football League</span>
+          </div>
           <p>Loading...</p>
         </div>
       </div>
@@ -32,10 +35,10 @@ const Auth = () => {
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="text-3xl animate-bounce">⚽</div>
-            <div className="text-2xl">🏆</div>
+            <span className="text-4xl animate-bounce">⚽</span>
+            <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-pulse">Fantasy Football League</span>
           </div>
-          <CardTitle className="text-2xl fancy-logo">Fantasy Football League</CardTitle>
+          <CardTitle className="text-2xl">Welcome Back!</CardTitle>
           <CardDescription>
             Sign in to manage your fantasy football teams and track matches
           </CardDescription>
@@ -43,7 +46,7 @@ const Auth = () => {
         <CardContent className="space-y-4">
           <Button
             onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center space-x-2 football-gradient"
+            className="w-full flex items-center justify-center space-x-2"
             size="lg"
           >
             <Chrome className="h-5 w-5" />
