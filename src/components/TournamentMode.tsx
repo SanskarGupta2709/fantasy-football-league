@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -453,15 +454,15 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {groupStats.map((team, index) => (
-                        <TableRow key={team.id} className={index < 2 ? "bg-green-50" : ""}>
+                      {groupStats.map((team, teamIndex) => (
+                        <TableRow key={team.id} className={teamIndex < 2 ? "bg-green-50" : ""}>
                           <TableCell className="font-medium">
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                              index === 0 ? 'bg-yellow-500' : 
-                              index === 1 ? 'bg-gray-400' : 
+                              teamIndex === 0 ? 'bg-yellow-500' : 
+                              teamIndex === 1 ? 'bg-gray-400' : 
                               'bg-blue-500'
                             }`}>
-                              {index + 1}
+                              {teamIndex + 1}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -487,7 +488,7 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                   </Table>
                 </div>
                 
-                {index < 2 && (
+                {teamIndex < 2 && (
                   <div className="mt-3 p-2 bg-green-50 rounded text-sm text-green-700">
                     <span className="font-medium">Top 2 teams advance to semifinals</span>
                   </div>
