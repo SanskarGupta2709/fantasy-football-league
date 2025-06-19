@@ -97,54 +97,96 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
         </Card>
       </div>
 
+      {/* Quick Leaderboard */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 shrink-0" />
+            <span className="break-words min-w-0">
+              <span className="hidden sm:inline">{userName}'s League Table (Top 5)</span>
+              <span className="sm:hidden">{firstName}'s Top 5</span>
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 sm:space-y-3">
+            {sortedTeams.slice(0, 5).map((team, index) => (
+              <div key={team.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0 ${
+                    index === 0 ? 'bg-yellow-500' : 
+                    index === 1 ? 'bg-gray-400' : 
+                    index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <span className="text-sm sm:text-lg shrink-0">{team.logo}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm sm:text-base truncate">{team.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">{team.manager}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0 flex items-center space-x-3">
+                  <div className="text-xs text-gray-500 hidden sm:block">
+                    <div className="flex space-x-1">
+                      <span className="text-green-600">{team.goalsFor}</span>
+                      <span>-</span>
+                      <span className="text-red-600">{team.goalsAgainst}</span>
+                    </div>
+                    <div className={`${team.goalsFor - team.goalsAgainst >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {team.goalsFor - team.goalsAgainst >= 0 ? '+' : ''}{team.goalsFor - team.goalsAgainst}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-sm sm:text-lg">{team.points}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">pts</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Scorers and Most Assists Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Quick Leaderboard */}
+        {/* Top Scorers */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
-              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 shrink-0" />
-              <span className="break-words min-w-0">
-                <span className="hidden sm:inline">{userName}'s League Table (Top 5)</span>
-                <span className="sm:hidden">{firstName}'s Top 5</span>
-              </span>
+              <Award className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" />
+              <span>🥅 Top Scorers</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 sm:space-y-3">
-              {sortedTeams.slice(0, 5).map((team, index) => (
-                <div key={team.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0 ${
-                      index === 0 ? 'bg-yellow-500' : 
-                      index === 1 ? 'bg-gray-400' : 
-                      index === 2 ? 'bg-orange-500' : 'bg-blue-500'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <span className="text-sm sm:text-lg shrink-0">{team.logo}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm sm:text-base truncate">{team.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{team.manager}</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0 flex items-center space-x-3">
-                    <div className="text-xs text-gray-500 hidden sm:block">
-                      <div className="flex space-x-1">
-                        <span className="text-green-600">{team.goalsFor}</span>
-                        <span>-</span>
-                        <span className="text-red-600">{team.goalsAgainst}</span>
+              {topScorers.length > 0 ? (
+                topScorers.slice(0, 5).map((player, index) => (
+                  <div key={player.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0 ${
+                        index === 0 ? 'bg-green-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                      }`}>
+                        {index + 1}
                       </div>
-                      <div className={`${team.goalsFor - team.goalsAgainst >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {team.goalsFor - team.goalsAgainst >= 0 ? '+' : ''}{team.goalsFor - team.goalsAgainst}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm sm:text-base truncate">{player.name}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">{player.teamName}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm sm:text-lg">{team.points}</p>
-                      <p className="text-xs sm:text-sm text-gray-600">pts</p>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-sm sm:text-lg text-green-500">⚽ {player.goals}</p>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Award className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No goals scored yet</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -154,7 +196,7 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
               <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
-              <span>🥇 Most Assists</span>
+              <span>🎯 Most Assists</span>
             </CardTitle>
           </CardHeader>
           <CardContent>

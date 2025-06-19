@@ -9,7 +9,6 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { TeamsManagement } from '@/components/TeamsManagement';
 import { PlayerManagement } from '@/components/PlayerManagement';
 import { MatchTracker } from '@/components/MatchTracker';
-import { TopScorers } from '@/components/TopScorers';
 import { Fixtures } from '@/components/Fixtures';
 import { PlayoffBracket } from '@/components/PlayoffBracket';
 import { TournamentMode } from '@/components/TournamentMode';
@@ -126,8 +125,6 @@ const Index = () => {
             onAddMatch={addMatch}
           />
         );
-      case 'scorers':
-        return <TopScorers topScorers={topScorers} />;
       default:
         return (
           <Dashboard 
@@ -143,7 +140,7 @@ const Index = () => {
   const getTabTitle = () => {
     switch (activeTab) {
       case 'dashboard': 
-        return 'Dashboard';
+        return '';
       case 'leaderboard': 
         return 'League Table';
       case 'teams': 
@@ -164,17 +161,15 @@ const Index = () => {
             <span className="sm:hidden">Match Results</span>
           </span>
         );
-      case 'scorers': 
-        return 'Top Scorers';
       default: 
-        return 'Dashboard';
+        return '';
     }
   };
 
   const getTabDescription = () => {
     switch (activeTab) {
       case 'dashboard': 
-        return 'Fantasy football league overview';
+        return '';
       case 'leaderboard': 
         return 'Complete league table with all team statistics';
       case 'teams': 
@@ -185,10 +180,8 @@ const Index = () => {
         return 'Create and manage tournament competitions';
       case 'matches': 
         return 'Add and track match results';
-      case 'scorers': 
-        return 'View top 5 goal scorers and assists';
       default: 
-        return 'Fantasy football league overview';
+        return '';
     }
   };
 
@@ -197,22 +190,40 @@ const Index = () => {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-          <div className="overflow-hidden">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 break-words">{getTabTitle()}</h2>
-            <p className="text-gray-600 text-sm sm:text-base break-words">{getTabDescription()}</p>
+        {/* Only show heading for non-dashboard tabs */}
+        {activeTab !== 'dashboard' && (
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+            <div className="overflow-hidden">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 break-words">{getTabTitle()}</h2>
+              <p className="text-gray-600 text-sm sm:text-base break-words">{getTabDescription()}</p>
+            </div>
+            
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 shrink-0"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">Reset League</span>
+              <span className="sm:hidden">Reset</span>
+            </Button>
           </div>
-          
-          <Button
-            variant="outline"
-            onClick={handleReset}
-            className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 shrink-0"
-          >
-            <RotateCcw className="h-4 w-4" />
-            <span className="hidden sm:inline">Reset League</span>
-            <span className="sm:hidden">Reset</span>
-          </Button>
-        </div>
+        )}
+
+        {/* Only show reset button for dashboard */}
+        {activeTab === 'dashboard' && (
+          <div className="flex justify-end mb-4 sm:mb-6">
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 shrink-0"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">Reset League</span>
+              <span className="sm:hidden">Reset</span>
+            </Button>
+          </div>
+        )}
 
         {renderContent()}
       </main>
