@@ -142,62 +142,53 @@ const Index = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return (
-        <span className="break-words">
-          <span className="hidden sm:inline">{userName}'s League Dashboard</span>
-          <span className="sm:hidden">{firstName}'s Dashboard</span>
-        </span>
-      );
-      case 'leaderboard': return (
-        <span className="break-words">
-          <span className="hidden sm:inline">{userName}'s League Table</span>
-          <span className="sm:hidden">{firstName}'s League Table</span>
-        </span>
-      );
-      case 'teams': return 'Team Management';
-      case 'players': return 'Player Management';
-      case 'tournament': return (
-        <span className="break-words">
-          <span className="hidden sm:inline">Let's create your tournament, {userName}!</span>
-          <span className="sm:hidden">Tournament Setup</span>
-        </span>
-      );
-      case 'matches': return (
-        <span className="break-words">
-          <span className="hidden sm:inline">Log your match results, {userName}</span>
-          <span className="sm:hidden">Match Results</span>
-        </span>
-      );
-      case 'scorers': return 'Top Scorers';
-      default: return (
-        <span className="break-words">
-          <span className="hidden sm:inline">{userName}'s League Dashboard</span>
-          <span className="sm:hidden">{firstName}'s Dashboard</span>
-        </span>
-      );
+      case 'dashboard': 
+        return 'Dashboard';
+      case 'leaderboard': 
+        return 'League Table';
+      case 'teams': 
+        return 'Team Management';
+      case 'players': 
+        return 'Player Management';
+      case 'tournament': 
+        return (
+          <span className="break-words">
+            <span className="hidden sm:inline">Let's create your tournament, {userName}!</span>
+            <span className="sm:hidden">Tournament Setup</span>
+          </span>
+        );
+      case 'matches': 
+        return (
+          <span className="break-words">
+            <span className="hidden sm:inline">Log your match results, {userName}</span>
+            <span className="sm:hidden">Match Results</span>
+          </span>
+        );
+      case 'scorers': 
+        return 'Top Scorers';
+      default: 
+        return 'Dashboard';
     }
   };
 
   const getTabDescription = () => {
     switch (activeTab) {
-      case 'dashboard': return (
-        <span className="break-words text-sm sm:text-base">
-          <span className="hidden sm:inline">Overview of {userName}'s fantasy football league</span>
-          <span className="sm:hidden">League overview</span>
-        </span>
-      );
-      case 'leaderboard': return 'Complete league table with all team statistics';
-      case 'teams': return 'Manage teams and players';
-      case 'players': return 'Manage all players across teams';
-      case 'tournament': return 'Create and manage tournament competitions';
-      case 'matches': return 'Add and track match results';
-      case 'scorers': return 'View top 5 goal scorers and assists';
-      default: return (
-        <span className="break-words text-sm sm:text-base">
-          <span className="hidden sm:inline">Overview of {userName}'s fantasy football league</span>
-          <span className="sm:hidden">League overview</span>
-        </span>
-      );
+      case 'dashboard': 
+        return 'Fantasy football league overview';
+      case 'leaderboard': 
+        return 'Complete league table with all team statistics';
+      case 'teams': 
+        return 'Manage teams and players';
+      case 'players': 
+        return 'Manage all players across teams';
+      case 'tournament': 
+        return 'Create and manage tournament competitions';
+      case 'matches': 
+        return 'Add and track match results';
+      case 'scorers': 
+        return 'View top 5 goal scorers and assists';
+      default: 
+        return 'Fantasy football league overview';
     }
   };
 
@@ -224,14 +215,6 @@ const Index = () => {
         </div>
 
         {renderContent()}
-
-        {/* Personalized Footer */}
-        <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 text-center">
-          <p className="text-xs sm:text-sm text-gray-600 break-words">
-            <span className="hidden sm:inline">⚽ Built for {userName}'s Fantasy Football League ⚽</span>
-            <span className="sm:hidden">⚽ {firstName}'s League ⚽</span>
-          </p>
-        </div>
       </main>
     </div>
   );

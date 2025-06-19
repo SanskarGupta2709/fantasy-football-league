@@ -10,12 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LeaderboardProps {
   teams: Team[];
 }
 
 export const Leaderboard = ({ teams }: LeaderboardProps) => {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
+  const firstName = userName.split(' ')[0];
+
   const sortedTeams = [...teams].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     const aGD = a.goalsFor - a.goalsAgainst;
@@ -56,7 +61,10 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Trophy className="h-6 w-6 text-yellow-500" />
-            <span>League Table</span>
+            <span className="break-words">
+              <span className="hidden sm:inline">{userName}'s League Table</span>
+              <span className="sm:hidden">{firstName}'s League Table</span>
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

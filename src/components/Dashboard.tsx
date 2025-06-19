@@ -115,9 +115,21 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
                       <p className="text-xs sm:text-sm text-gray-600 truncate">{team.manager}</p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-sm sm:text-lg">{team.points}</p>
-                    <p className="text-xs sm:text-sm text-gray-600">pts</p>
+                  <div className="text-right shrink-0 flex items-center space-x-3">
+                    <div className="text-xs text-gray-500 hidden sm:block">
+                      <div className="flex space-x-1">
+                        <span className="text-green-600">{team.goalsFor}</span>
+                        <span>-</span>
+                        <span className="text-red-600">{team.goalsAgainst}</span>
+                      </div>
+                      <div className={`${team.goalsFor - team.goalsAgainst >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {team.goalsFor - team.goalsAgainst >= 0 ? '+' : ''}{team.goalsFor - team.goalsAgainst}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm sm:text-lg">{team.points}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">pts</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -159,14 +171,6 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Personalized Footer */}
-      <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 text-center">
-        <p className="text-xs sm:text-sm text-gray-600 break-words">
-          <span className="hidden sm:inline">⚽ Built for {userName}'s Fantasy Football League ⚽</span>
-          <span className="sm:hidden">⚽ {firstName}'s League ⚽</span>
-        </p>
       </div>
     </div>
   );

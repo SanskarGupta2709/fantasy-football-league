@@ -446,9 +446,10 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
                         <TableHead>Team</TableHead>
-                        <TableHead className="text-center w-16">GF</TableHead>
-                        <TableHead className="text-center w-16">GA</TableHead>
-                        <TableHead className="text-center w-16">GD</TableHead>
+                        <TableHead className="text-center w-12">P</TableHead>
+                        <TableHead className="text-center w-12">GF</TableHead>
+                        <TableHead className="text-center w-12">GA</TableHead>
+                        <TableHead className="text-center w-12">GD</TableHead>
                         <TableHead className="text-center w-16">Pts</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -468,19 +469,20 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                             <div className="flex items-center space-x-2">
                               <span className="text-lg">{team.logo}</span>
                               <div>
-                                <p className="font-medium">{team.name}</p>
-                                <p className="text-xs text-gray-500">{team.matchesPlayed} matches</p>
+                                <p className="font-medium text-sm">{team.name}</p>
+                                <p className="text-xs text-gray-500">{team.manager}</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center font-medium">{team.groupGoalsFor}</TableCell>
-                          <TableCell className="text-center font-medium">{team.groupGoalsAgainst}</TableCell>
-                          <TableCell className="text-center font-medium">
+                          <TableCell className="text-center font-medium text-sm">{team.matchesPlayed}</TableCell>
+                          <TableCell className="text-center font-medium text-sm text-green-600">{team.groupGoalsFor}</TableCell>
+                          <TableCell className="text-center font-medium text-sm text-red-600">{team.groupGoalsAgainst}</TableCell>
+                          <TableCell className="text-center font-medium text-sm">
                             <span className={team.groupGoalDifference >= 0 ? "text-green-600" : "text-red-600"}>
                               {team.groupGoalDifference >= 0 ? '+' : ''}{team.groupGoalDifference}
                             </span>
                           </TableCell>
-                          <TableCell className="text-center font-bold text-lg">{team.groupPoints}</TableCell>
+                          <TableCell className="text-center font-bold text-lg text-blue-600">{team.groupPoints}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -489,26 +491,6 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                 
                 <div className="mt-3 p-2 bg-green-50 rounded text-sm text-green-700">
                   <span className="font-medium">Top 2 teams advance to semifinals</span>
-                </div>
-
-                <div className="mt-4">
-                  <h4 className="font-medium mb-2 text-sm">Group Fixtures:</h4>
-                  <div className="space-y-1">
-                    {fixtures
-                      .filter(fixture => fixture.stage === group.name)
-                      .map((fixture, idx) => {
-                        const teamA = teams.find(t => t.id === fixture.teamAId);
-                        const teamB = teams.find(t => t.id === fixture.teamBId);
-                        return (
-                          <div key={idx} className="flex items-center justify-between p-2 bg-white border rounded text-sm">
-                            <span>{teamA?.name} vs {teamB?.name}</span>
-                            <Badge variant={fixture.status === 'Completed' ? 'default' : 'outline'} className="text-xs">
-                              {fixture.status}
-                            </Badge>
-                          </div>
-                        );
-                      })}
-                  </div>
                 </div>
               </CardContent>
             </Card>

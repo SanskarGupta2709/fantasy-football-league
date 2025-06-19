@@ -43,7 +43,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                 ⚽
               </span>
               <h1 
-                className="text-sm sm:text-xl font-black relative truncate max-w-[120px] sm:max-w-none"
+                className="text-sm sm:text-xl font-black relative"
                 style={{ 
                   background: 'linear-gradient(45deg, #22c55e, #3b82f6, #8b5cf6)',
                   backgroundSize: '200% 200%',
@@ -55,8 +55,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                   textShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
                 }}
               >
-                <span className="hidden sm:inline">{userName}'s League</span>
-                <span className="sm:hidden">{firstName}'s League</span>
+                Fantasy Football League
               </h1>
             </div>
             <div className="hidden lg:flex space-x-1 overflow-x-auto">
@@ -78,9 +77,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
-            <div className="text-xs sm:text-sm font-semibold text-gray-700 bg-gradient-to-r from-green-50 to-blue-50 px-2 sm:px-3 py-2 rounded-lg border border-green-200 max-w-[120px] sm:max-w-none truncate">
-              <span className="hidden sm:inline">Hi, {userName}! 👋</span>
-              <span className="sm:hidden">Hi, {firstName}! 👋</span>
+            <div className="text-xs sm:text-sm font-semibold text-gray-700 bg-gradient-to-r from-green-50 to-blue-50 px-2 sm:px-3 py-2 rounded-lg border border-green-200 max-w-[100px] sm:max-w-[120px] md:max-w-none overflow-hidden">
+              <span className="truncate block sm:hidden">Hi, {firstName}! 👋</span>
+              <span className="hidden sm:block truncate">Hi, {userName}! 👋</span>
             </div>
             <Button
               variant="outline"
