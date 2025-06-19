@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -488,11 +487,9 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                   </Table>
                 </div>
                 
-                {teamIndex < 2 && (
-                  <div className="mt-3 p-2 bg-green-50 rounded text-sm text-green-700">
-                    <span className="font-medium">Top 2 teams advance to semifinals</span>
-                  </div>
-                )}
+                <div className="mt-3 p-2 bg-green-50 rounded text-sm text-green-700">
+                  <span className="font-medium">Top 2 teams advance to semifinals</span>
+                </div>
 
                 <div className="mt-4">
                   <h4 className="font-medium mb-2 text-sm">Group Fixtures:</h4>
