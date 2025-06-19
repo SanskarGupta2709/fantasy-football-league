@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,7 +123,6 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
       return;
     }
 
-    // Determine team for each player
     const goalScorers: GoalScorer[] = playerStats
       .filter(stat => stat.playerId)
       .map(stat => {
@@ -156,43 +156,39 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
     return teams.find(t => t.id === teamId)?.logo || '⚽';
   };
 
-  const getPlayerName = (playerId: string) => {
-    const player = getAvailablePlayers().find(p => p.id === playerId);
-    return player ? `${player.name} (#${player.jerseyNumber})` : 'Unknown Player';
-  };
-
-  const getPlayerDisplayName = (playerId: string) => {
-    const player = getAvailablePlayers().find(p => p.id === playerId);
-    return player ? player.name : 'Unknown Player';
-  };
-
-  const getPlayerTeamName = (playerId: string) => {
-    const player = getAvailablePlayers().find(p => p.id === playerId);
-    return player ? player.teamName : 'Unknown Team';
+  // Helper function to get player info by ID
+  const getPlayerInfo = (playerId: string, teamId: string) => {
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return { name: 'Unknown Player', teamName: 'Unknown Team' };
+    
+    const player = team.players.find(p => p.id === playerId);
+    return {
+      name: player?.name || 'Unknown Player',
+      teamName: team.name
+    };
   };
 
   const renderMatchEvents = (match: Match) => {
     const events: Array<{ type: string; player: string; team: string; count?: number }> = [];
     
     match.goalScorers.forEach(scorer => {
-      const playerName = getPlayerDisplayName(scorer.playerId);
-      const teamName = getPlayerTeamName(scorer.playerId);
+      const playerInfo = getPlayerInfo(scorer.playerId, scorer.teamId);
       
       if (scorer.goals > 0) {
         for (let i = 0; i < scorer.goals; i++) {
-          events.push({ type: 'goal', player: playerName, team: teamName });
+          events.push({ type: 'goal', player: playerInfo.name, team: playerInfo.teamName });
         }
       }
       if (scorer.assists > 0) {
         for (let i = 0; i < scorer.assists; i++) {
-          events.push({ type: 'assist', player: playerName, team: teamName });
+          events.push({ type: 'assist', player: playerInfo.name, team: playerInfo.teamName });
         }
       }
       if (scorer.yellowCards > 0) {
-        events.push({ type: 'yellow', player: playerName, team: teamName, count: scorer.yellowCards });
+        events.push({ type: 'yellow', player: playerInfo.name, team: playerInfo.teamName, count: scorer.yellowCards });
       }
       if (scorer.redCards > 0) {
-        events.push({ type: 'red', player: playerName, team: teamName });
+        events.push({ type: 'red', player: playerInfo.name, team: playerInfo.teamName });
       }
     });
 
