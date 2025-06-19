@@ -1,14 +1,12 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Calendar, Trophy, Target, Award } from "lucide-react";
-import { Team, Match, Player } from "@/utils/storage";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Plus, Trash2 } from 'lucide-react';
+import { Team, Match, GoalScorer } from '@/hooks/useSupabaseLeagueData';
 
 interface MatchTrackerProps {
   teams: Team[];
@@ -16,430 +14,429 @@ interface MatchTrackerProps {
   onAddMatch: (match: Omit<Match, 'id'>) => void;
 }
 
-export const MatchTracker = ({ teams, matches, onAddMatch }: MatchTrackerProps) => {
-  const { toast } = useToast();
-  const [newMatch, setNewMatch] = useState({
+interface PlayerStats {
+  playerId: string;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAddMatch }) => {
+  const [showForm, setShowForm] = useState(false);
+  const [showAnimations, setShowAnimations] = useState(false);
+  const [animationData, setAnimationData] = useState<{ goals: any[], redCards: any[] }>({ goals: [], redCards: [] });
+  
+  const [matchData, setMatchData] = useState({
     teamAId: '',
     teamBId: '',
     teamAScore: 0,
     teamBScore: 0,
-    date: new Date().toISOString().split('T')[0],
-    round: 'Group Stage'
+    date: '',
+    round: 'Group Stage',
   });
-  const [goalScorers, setGoalScorers] = useState<Array<{
-    playerId: string;
-    teamId: string;
-    goals: number;
-    assists: number;
-  }>>([]);
-  const [showGoalScorerDialog, setShowGoalScorerDialog] = useState(false);
 
-  const rounds = ['Group Stage', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
+  const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
 
   const resetForm = () => {
-    setNewMatch({
+    setMatchData({
       teamAId: '',
       teamBId: '',
       teamAScore: 0,
       teamBScore: 0,
-      date: new Date().toISOString().split('T')[0],
-      round: 'Group Stage'
+      date: '',
+      round: 'Group Stage',
     });
-    setGoalScorers([]);
-    setShowGoalScorerDialog(false);
+    setPlayerStats([]);
   };
 
-  const handleAddMatch = () => {
-    if (!newMatch.teamAId || !newMatch.teamBId || newMatch.teamAId === newMatch.teamBId) {
-      toast({
-        title: "Error",
-        description: "Please select two different teams",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const totalGoals = newMatch.teamAScore + newMatch.teamBScore;
-    const totalGoalScorers = goalScorers.reduce((sum, gs) => sum + gs.goals, 0);
-
-    if (totalGoals !== totalGoalScorers) {
-      toast({
-        title: "Error",
-        description: `Total goals (${totalGoals}) must match goal scorers (${totalGoalScorers})`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onAddMatch({
-      ...newMatch,
-      goalScorers
-    });
-
-    resetForm();
-
-    toast({
-      title: "Success",
-      description: "Match added successfully! You can add another match.",
-    });
-  };
-
-  const addGoalScorer = () => {
-    setGoalScorers([...goalScorers, {
+  const addPlayerStat = () => {
+    setPlayerStats([...playerStats, {
       playerId: '',
-      teamId: '',
-      goals: 1,
-      assists: 0
+      goals: 0,
+      assists: 0,
+      yellowCards: 0,
+      redCards: 0,
     }]);
   };
 
-  const updateGoalScorer = (index: number, updates: Partial<typeof goalScorers[0]>) => {
-    const updated = [...goalScorers];
-    updated[index] = { ...updated[index], ...updates };
-    setGoalScorers(updated);
+  const updatePlayerStat = (index: number, field: keyof PlayerStats, value: string | number) => {
+    const newStats = [...playerStats];
+    newStats[index] = { ...newStats[index], [field]: value };
+    setPlayerStats(newStats);
   };
 
-  const removeGoalScorer = (index: number) => {
-    setGoalScorers(goalScorers.filter((_, i) => i !== index));
+  const removePlayerStat = (index: number) => {
+    setPlayerStats(playerStats.filter((_, i) => i !== index));
   };
 
-  const getPlayersForTeam = (teamId: string): Player[] => {
-    const team = teams.find(t => t.id === teamId);
-    return team?.players || [];
+  const getAvailablePlayers = () => {
+    if (!matchData.teamAId && !matchData.teamBId) return [];
+    
+    const teamA = teams.find(t => t.id === matchData.teamAId);
+    const teamB = teams.find(t => t.id === matchData.teamBId);
+    
+    const allPlayers = [];
+    if (teamA) allPlayers.push(...teamA.players.map(p => ({ ...p, teamId: teamA.id, teamName: teamA.name })));
+    if (teamB) allPlayers.push(...teamB.players.map(p => ({ ...p, teamId: teamB.id, teamName: teamB.name })));
+    
+    return allPlayers;
+  };
+
+  const showMatchAnimations = (goalScorers: GoalScorer[]) => {
+    const availablePlayers = getAvailablePlayers();
+    
+    const goalAnimations = goalScorers
+      .filter(gs => gs.goals > 0)
+      .map(gs => {
+        const player = availablePlayers.find(p => p.id === gs.playerId);
+        return {
+          playerName: player?.name || 'Unknown',
+          teamName: player?.teamName || 'Unknown',
+          goals: gs.goals
+        };
+      });
+
+    const redCardAnimations = goalScorers
+      .filter(gs => gs.redCards > 0)
+      .map(gs => {
+        const player = availablePlayers.find(p => p.id === gs.playerId);
+        return {
+          playerName: player?.name || 'Unknown',
+          teamName: player?.teamName || 'Unknown'
+        };
+      });
+
+    setAnimationData({ goals: goalAnimations, redCards: redCardAnimations });
+    setShowAnimations(true);
+    
+    setTimeout(() => {
+      setShowAnimations(false);
+      setAnimationData({ goals: [], redCards: [] });
+    }, 3000);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!matchData.teamAId || !matchData.teamBId || !matchData.date) {
+      return;
+    }
+
+    // Determine team for each player
+    const goalScorers: GoalScorer[] = playerStats
+      .filter(stat => stat.playerId)
+      .map(stat => {
+        const player = getAvailablePlayers().find(p => p.id === stat.playerId);
+        return {
+          playerId: stat.playerId,
+          teamId: player?.teamId || '',
+          goals: stat.goals,
+          assists: stat.assists,
+          yellowCards: stat.yellowCards,
+          redCards: stat.redCards,
+        };
+      });
+
+    const match: Omit<Match, 'id'> = {
+      ...matchData,
+      goalScorers,
+    };
+
+    onAddMatch(match);
+    showMatchAnimations(goalScorers);
+    resetForm();
+    setShowForm(false);
+  };
+
+  const getTeamName = (teamId: string) => {
+    return teams.find(t => t.id === teamId)?.name || 'Unknown Team';
+  };
+
+  const getPlayerName = (playerId: string) => {
+    const player = getAvailablePlayers().find(p => p.id === playerId);
+    return player ? `${player.name} (#${player.jerseyNumber})` : 'Unknown Player';
   };
 
   return (
     <div className="space-y-6">
-      {/* Add Match Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Plus className="h-5 w-5" />
-            <span>Add New Match</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div>
-                <Label>Team A</Label>
-                <Select value={newMatch.teamAId} onValueChange={(value) => setNewMatch({ ...newMatch, teamAId: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Team A" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        <div className="flex items-center space-x-2">
-                          <span>{team.logo}</span>
-                          <span>{team.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Match Animations */}
+      {showAnimations && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96 bg-gradient-to-r from-green-400 to-blue-500 text-white">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-2xl font-bold mb-4">Match Results!</h3>
+              
+              {animationData.goals.map((goal, index) => (
+                <div key={index} className="animate-pulse mb-2 flex items-center justify-center space-x-2">
+                  <span className="text-4xl animate-bounce">⚽</span>
+                  <div className="bg-yellow-300 text-yellow-800 px-3 py-1 rounded-full animate-ping">
+                    <span className="font-bold">{goal.playerName}</span> scored {goal.goals} goal{goal.goals > 1 ? 's' : ''}!
+                  </div>
+                </div>
+              ))}
+              
+              {animationData.redCards.map((card, index) => (
+                <div key={index} className="animate-bounce mb-2 flex items-center justify-center space-x-2">
+                  <span className="text-4xl animate-pulse">🟥</span>
+                  <div className="bg-red-300 text-red-800 px-3 py-1 rounded-full animate-bounce">
+                    <span className="font-bold">{card.playerName}</span> received a red card!
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className="flex justify-between items-center">
+        <h3 className="text-2xl font-bold">Match Tracker</h3>
+        <Button onClick={() => setShowForm(true)} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Add Match</span>
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Log Match Result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Match Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Team A</label>
+                  <Select value={matchData.teamAId} onValueChange={(value) => setMatchData({...matchData, teamAId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Team A" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Team B</label>
+                  <Select value={matchData.teamBId} onValueChange={(value) => setMatchData({...matchData, teamBId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Team B" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams.filter(t => t.id !== matchData.teamAId).map(team => (
+                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Team A Score</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={matchData.teamAScore}
+                    onChange={(e) => setMatchData({...matchData, teamAScore: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Team B Score</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={matchData.teamBScore}
+                    onChange={(e) => setMatchData({...matchData, teamBScore: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Date</label>
+                  <Input
+                    type="date"
+                    value={matchData.date}
+                    onChange={(e) => setMatchData({...matchData, date: e.target.value})}
+                  />
+                </div>
               </div>
 
               <div>
-                <Label>Team B</Label>
-                <Select value={newMatch.teamBId} onValueChange={(value) => setNewMatch({ ...newMatch, teamBId: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Team B" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id} disabled={team.id === newMatch.teamAId}>
-                        <div className="flex items-center space-x-2">
-                          <span>{team.logo}</span>
-                          <span>{team.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Round</Label>
-                <Select value={newMatch.round} onValueChange={(value) => setNewMatch({ ...newMatch, round: value })}>
+                <label className="block text-sm font-medium mb-2">Round</label>
+                <Select value={matchData.round} onValueChange={(value) => setMatchData({...matchData, round: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {rounds.map((round) => (
-                      <SelectItem key={round} value={round}>
-                        {round}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Group Stage">Group Stage</SelectItem>
+                    <SelectItem value="Round of 16">Round of 16</SelectItem>
+                    <SelectItem value="Quarter Finals">Quarter Finals</SelectItem>
+                    <SelectItem value="Semi Finals">Semi Finals</SelectItem>
+                    <SelectItem value="Final">Final</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Player Statistics */}
               <div>
-                <Label>Date</Label>
-                <Input
-                  type="date"
-                  value={newMatch.date}
-                  onChange={(e) => setNewMatch({ ...newMatch, date: e.target.value })}
-                />
-              </div>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold">Player Statistics</h4>
+                  <Button type="button" onClick={addPlayerStat} size="sm">
+                    Add Player
+                  </Button>
+                </div>
 
-              <div className="flex items-end">
-                <Button 
-                  onClick={() => setShowGoalScorerDialog(true)}
-                  className="w-full football-gradient"
-                  disabled={!newMatch.teamAId || !newMatch.teamBId}
-                >
-                  Set Score & Stats
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Match Results */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5" />
-            <span>Match History ({matches.length} matches)</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {matches.length === 0 ? (
-              <div className="text-center py-12">
-                <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No matches played yet</p>
-                <p className="text-gray-400">Add your first match above to get started!</p>
-              </div>
-            ) : (
-              matches.slice().reverse().map((match) => {
-                const teamA = teams.find(t => t.id === match.teamAId);
-                const teamB = teams.find(t => t.id === match.teamBId);
-                
-                return (
-                  <div key={match.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-center">
-                          <p className="text-xl">{teamA?.logo}</p>
-                          <p className="font-semibold text-sm">{teamA?.name}</p>
+                {playerStats.map((stat, index) => (
+                  <Card key={index} className="mb-4">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-6 gap-4 items-end">
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium mb-2">Player</label>
+                          <Select 
+                            value={stat.playerId} 
+                            onValueChange={(value) => updatePlayerStat(index, 'playerId', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Player" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getAvailablePlayers().map(player => (
+                                <SelectItem key={player.id} value={player.id}>
+                                  {player.name} (#{player.jerseyNumber}) - {player.teamName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        
-                        <div className="text-center bg-green-100 px-4 py-2 rounded-lg">
-                          <p className="text-2xl font-bold text-green-800">
-                            {match.teamAScore} - {match.teamBScore}
-                          </p>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Goals ⚽</label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={stat.goals}
+                            onChange={(e) => updatePlayerStat(index, 'goals', parseInt(e.target.value) || 0)}
+                          />
                         </div>
-                        
-                        <div className="text-center">
-                          <p className="text-xl">{teamB?.logo}</p>
-                          <p className="font-semibold text-sm">{teamB?.name}</p>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Assists 🎯</label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={stat.assists}
+                            onChange={(e) => updatePlayerStat(index, 'assists', parseInt(e.target.value) || 0)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">🟨 Cards</label>
+                          <Select 
+                            value={stat.yellowCards.toString()} 
+                            onValueChange={(value) => updatePlayerStat(index, 'yellowCards', parseInt(value))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">0</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium mb-2">🟥</label>
+                            <input
+                              type="checkbox"
+                              checked={stat.redCards > 0}
+                              onChange={(e) => updatePlayerStat(index, 'redCards', e.target.checked ? 1 : 0)}
+                              className="w-5 h-5"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removePlayerStat(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      
-                      <div className="text-right">
-                        <p className="font-semibold">{match.round}</p>
-                        <p className="text-sm text-gray-600">{match.date}</p>
-                      </div>
-                    </div>
-                    
-                    {match.goalScorers.length > 0 && (
-                      <div className="border-t pt-3">
-                        <p className="font-semibold mb-2">Player Stats:</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {match.goalScorers.map((scorer, index) => {
-                            const team = teams.find(t => t.id === scorer.teamId);
-                            const player = team?.players.find(p => p.id === scorer.playerId);
-                            return (
-                              <div key={index} className="flex items-center space-x-2 text-sm">
-                                <span>{team?.logo}</span>
-                                <span className="font-medium">{player?.name}</span>
-                                <div className="flex items-center space-x-1">
-                                  <Target className="h-3 w-3 text-green-600" />
-                                  <span>{scorer.goals}</span>
-                                </div>
-                                {scorer.assists > 0 && (
-                                  <div className="flex items-center space-x-1">
-                                    <Award className="h-3 w-3 text-blue-600" />
-                                    <span>{scorer.assists}</span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Goal Scorer Dialog */}
-      <Dialog open={showGoalScorerDialog} onOpenChange={setShowGoalScorerDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Set Match Score & Player Statistics</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Score Input */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-lg font-semibold">
-                  {teams.find(t => t.id === newMatch.teamAId)?.name} Score
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={newMatch.teamAScore}
-                  onChange={(e) => setNewMatch({ ...newMatch, teamAScore: parseInt(e.target.value) || 0 })}
-                  className="text-xl text-center font-bold"
-                />
-              </div>
-              <div>
-                <Label className="text-lg font-semibold">
-                  {teams.find(t => t.id === newMatch.teamBId)?.name} Score
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={newMatch.teamBScore}
-                  onChange={(e) => setNewMatch({ ...newMatch, teamBScore: parseInt(e.target.value) || 0 })}
-                  className="text-xl text-center font-bold"
-                />
-              </div>
-            </div>
-
-            {/* Goal Scorers */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Player Statistics</h3>
-                <Button onClick={addGoalScorer} size="sm" className="flex items-center space-x-2">
-                  <Plus className="h-4 w-4" />
-                  <span>Add Player Stats</span>
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                {goalScorers.map((scorer, index) => (
-                  <div key={index} className="grid grid-cols-5 gap-3 items-end p-4 border rounded-lg bg-gray-50">
-                    <div>
-                      <Label className="font-medium">Team</Label>
-                      <Select 
-                        value={scorer.teamId} 
-                        onValueChange={(value) => updateGoalScorer(index, { 
-                          teamId: value, 
-                          playerId: '' // Reset player when team changes
-                        })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select team" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={newMatch.teamAId}>
-                            <div className="flex items-center space-x-2">
-                              <span>{teams.find(t => t.id === newMatch.teamAId)?.logo}</span>
-                              <span>{teams.find(t => t.id === newMatch.teamAId)?.name}</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value={newMatch.teamBId}>
-                            <div className="flex items-center space-x-2">
-                              <span>{teams.find(t => t.id === newMatch.teamBId)?.logo}</span>
-                              <span>{teams.find(t => t.id === newMatch.teamBId)?.name}</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="font-medium">Player</Label>
-                      <Select 
-                        value={scorer.playerId} 
-                        onValueChange={(value) => updateGoalScorer(index, { playerId: value })}
-                        disabled={!scorer.teamId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select player" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getPlayersForTeam(scorer.teamId).map((player) => (
-                            <SelectItem key={player.id} value={player.id}>
-                              #{player.jerseyNumber} {player.name} ({player.position})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="font-medium flex items-center space-x-1">
-                        <Target className="h-4 w-4 text-green-600" />
-                        <span>Goals</span>
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={scorer.goals}
-                        onChange={(e) => updateGoalScorer(index, { goals: parseInt(e.target.value) || 0 })}
-                        className="text-center"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="font-medium flex items-center space-x-1">
-                        <Award className="h-4 w-4 text-blue-600" />
-                        <span>Assists</span>
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={scorer.assists}
-                        onChange={(e) => updateGoalScorer(index, { assists: parseInt(e.target.value) || 0 })}
-                        className="text-center"
-                      />
-                    </div>
-                    
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => removeGoalScorer(index)}
-                      className="mt-6"
-                    >
-                      Remove
-                    </Button>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
-                
-                {goalScorers.length === 0 && (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                    <Target className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-gray-500">No player stats added yet</p>
-                    <p className="text-sm text-gray-400">Click "Add Player Stats" to record goals and assists</p>
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="flex justify-end space-x-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowGoalScorerDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddMatch} className="football-gradient">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Match
-              </Button>
-            </div>
+              <div className="flex space-x-2">
+                <Button type="submit">Save Match</Button>
+                <Button type="button" variant="outline" onClick={() => { resetForm(); setShowForm(false); }}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Match History */}
+      <div>
+        <h4 className="text-lg font-semibold mb-4">Recent Matches</h4>
+        {matches.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-gray-500">No matches recorded yet. Add your first match!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {matches.slice(0, 5).map(match => (
+              <Card key={match.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-center">
+                        <p className="font-semibold">{getTeamName(match.teamAId)}</p>
+                        <p className="text-2xl font-bold">{match.teamAScore}</p>
+                      </div>
+                      <div className="text-gray-400 font-bold">-</div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{match.teamBScore}</p>
+                        <p className="font-semibold">{getTeamName(match.teamBId)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge>{match.round}</Badge>
+                      <p className="text-sm text-gray-500 mt-1 flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(match.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {match.goalScorers.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <h5 className="font-medium mb-2">Match Details:</h5>
+                      <div className="space-y-1">
+                        {match.goalScorers.map((scorer, index) => (
+                          <div key={index} className="text-sm flex items-center space-x-2">
+                            <span>{getPlayerName(scorer.playerId)}</span>
+                            {scorer.goals > 0 && <Badge variant="outline">⚽ {scorer.goals}</Badge>}
+                            {scorer.assists > 0 && <Badge variant="outline">🎯 {scorer.assists}</Badge>}
+                            {scorer.yellowCards > 0 && <Badge variant="outline">🟨 {scorer.yellowCards}</Badge>}
+                            {scorer.redCards > 0 && <Badge variant="outline">🟥</Badge>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   );
 };

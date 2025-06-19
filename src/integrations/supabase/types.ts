@@ -9,6 +9,67 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      fixtures: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string | null
+          scheduled_date: string
+          stage: string
+          status: string
+          team_a_id: string
+          team_b_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          scheduled_date: string
+          stage?: string
+          status?: string
+          team_a_id: string
+          team_b_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          scheduled_date?: string
+          stage?: string
+          status?: string
+          team_a_id?: string
+          team_b_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixtures_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_scorers: {
         Row: {
           assists: number
@@ -16,7 +77,9 @@ export type Database = {
           id: string
           match_id: string
           player_id: string
+          red_cards: number
           team_id: string
+          yellow_cards: number
         }
         Insert: {
           assists?: number
@@ -24,7 +87,9 @@ export type Database = {
           id?: string
           match_id: string
           player_id: string
+          red_cards?: number
           team_id: string
+          yellow_cards?: number
         }
         Update: {
           assists?: number
@@ -32,7 +97,9 @@ export type Database = {
           id?: string
           match_id?: string
           player_id?: string
+          red_cards?: number
           team_id?: string
+          yellow_cards?: number
         }
         Relationships: [
           {
@@ -118,8 +185,10 @@ export type Database = {
           jersey_number: number
           name: string
           position: Database["public"]["Enums"]["player_position"]
+          red_cards: number
           team_id: string
           updated_at: string
+          yellow_cards: number
         }
         Insert: {
           assists?: number
@@ -129,8 +198,10 @@ export type Database = {
           jersey_number: number
           name: string
           position: Database["public"]["Enums"]["player_position"]
+          red_cards?: number
           team_id: string
           updated_at?: string
+          yellow_cards?: number
         }
         Update: {
           assists?: number
@@ -140,8 +211,10 @@ export type Database = {
           jersey_number?: number
           name?: string
           position?: Database["public"]["Enums"]["player_position"]
+          red_cards?: number
           team_id?: string
           updated_at?: string
+          yellow_cards?: number
         }
         Relationships: [
           {
@@ -201,6 +274,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wins?: number
+        }
+        Relationships: []
+      }
+      tournament_bracket: {
+        Row: {
+          bracket_data: Json
+          created_at: string
+          id: string
+          stage: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bracket_data?: Json
+          created_at?: string
+          id?: string
+          stage?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bracket_data?: Json
+          created_at?: string
+          id?: string
+          stage?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

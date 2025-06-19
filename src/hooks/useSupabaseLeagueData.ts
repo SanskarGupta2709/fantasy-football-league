@@ -25,6 +25,8 @@ export interface Player {
   position: 'Forward' | 'Midfielder' | 'Defender' | 'Goalkeeper';
   goals: number;
   assists: number;
+  yellowCards: number;
+  redCards: number;
 }
 
 export interface Match {
@@ -43,11 +45,31 @@ export interface GoalScorer {
   teamId: string;
   goals: number;
   assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+export interface Fixture {
+  id: string;
+  teamAId: string;
+  teamBId: string;
+  scheduledDate: string;
+  stage: string;
+  status: 'Upcoming' | 'Ongoing' | 'Completed';
+  matchId?: string;
+}
+
+export interface Bracket {
+  id: string;
+  bracketData: any;
+  stage: string;
 }
 
 export const useSupabaseLeagueData = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [bracket, setBracket] = useState<Bracket | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -90,6 +112,8 @@ export const useSupabaseLeagueData = () => {
             position: player.position,
             goals: player.goals,
             assists: player.assists,
+            yellowCards: player.yellow_cards,
+            redCards: player.red_cards,
           }))
       }));
 
@@ -136,6 +160,8 @@ export const useSupabaseLeagueData = () => {
             teamId: gs.team_id,
             goals: gs.goals,
             assists: gs.assists,
+            yellowCards: gs.yellow_cards,
+            redCards: gs.red_cards,
           }))
       }));
 
@@ -150,15 +176,171 @@ export const useSupabaseLeagueData = () => {
     }
   };
 
+  const fetchFixtures = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('fixtures')
+        .select('*')
+        .order('scheduled_date', { ascending: true });
+
+      if (error) throw error;
+
+      const fixturesData = data.map(fixture => ({
+        id: fixture.id,
+        teamAId: fixture.team_a_id,
+        teamBId: fixture.team_b_id,
+        scheduledDate: fixture.scheduled_date,
+        stage: fixture.stage,
+        status: fixture.status as 'Upcoming' | 'Ongoing' | 'Completed',
+        matchId: fixture.match_id,
+      }));
+
+      setFixtures(fixturesData);
+    } catch (error) {
+      console.error('Error fetching fixtures:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch fixtures",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchBracket = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('tournament_bracket')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data) {
+        setBracket({
+          id: data.id,
+          bracketData: data.bracket_data,
+          stage: data.stage,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching bracket:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
-      Promise.all([fetchTeams(), fetchMatches()]).finally(() => {
+      Promise.all([fetchTeams(), fetchMatches(), fetchFixtures(), fetchBracket()]).finally(() => {
         setLoading(false);
       });
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  const addFixture = async (fixture: Omit<Fixture, 'id'>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('fixtures')
+        .insert({
+          user_id: user.id,
+          team_a_id: fixture.teamAId,
+          team_b_id: fixture.teamBId,
+          scheduled_date: fixture.scheduledDate,
+          stage: fixture.stage,
+          status: fixture.status,
+        });
+
+      if (error) throw error;
+
+      await fetchFixtures();
+      toast({
+        title: "Success",
+        description: "Fixture added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding fixture:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add fixture",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateFixtureStatus = async (fixtureId: string, matchId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('fixtures')
+        .update({
+          status: 'Completed',
+          match_id: matchId,
+        })
+        .eq('id', fixtureId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchFixtures();
+    } catch (error) {
+      console.error('Error updating fixture status:', error);
+    }
+  };
+
+  const updateBracket = async (bracketData: any, stage: string) => {
+    if (!user) return;
+
+    try {
+      const { data: existing } = await supabase
+        .from('tournament_bracket')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('tournament_bracket')
+          .update({
+            bracket_data: bracketData,
+            stage: stage,
+          })
+          .eq('id', existing.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('tournament_bracket')
+          .insert({
+            user_id: user.id,
+            bracket_data: bracketData,
+            stage: stage,
+          });
+
+        if (error) throw error;
+      }
+
+      await fetchBracket();
+      toast({
+        title: "Success",
+        description: "Bracket updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating bracket:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update bracket",
+        variant: "destructive"
+      });
+    }
+  };
 
   const addTeam = async (team: Omit<Team, 'id' | 'players'>) => {
     if (!user) return;
@@ -250,7 +432,6 @@ export const useSupabaseLeagueData = () => {
       if (error) throw error;
 
       await fetchTeams();
-      await fetchMatches();
       toast({
         title: "Success",
         description: "Team deleted successfully",
@@ -375,7 +556,7 @@ export const useSupabaseLeagueData = () => {
 
       if (matchError) throw matchError;
 
-      // Add goal scorers
+      // Add goal scorers with card data
       if (match.goalScorers.length > 0) {
         const goalScorersToInsert = match.goalScorers.map(gs => ({
           match_id: matchData.id,
@@ -383,6 +564,8 @@ export const useSupabaseLeagueData = () => {
           team_id: gs.teamId,
           goals: gs.goals,
           assists: gs.assists,
+          yellow_cards: gs.yellowCards,
+          red_cards: gs.redCards,
         }));
 
         const { error: goalScorersError } = await supabase
@@ -391,7 +574,7 @@ export const useSupabaseLeagueData = () => {
 
         if (goalScorersError) throw goalScorersError;
 
-        // Update player stats
+        // Update player stats including cards
         for (const gs of match.goalScorers) {
           const player = teams.flatMap(t => t.players).find(p => p.id === gs.playerId);
           if (player) {
@@ -400,6 +583,8 @@ export const useSupabaseLeagueData = () => {
               .update({
                 goals: player.goals + gs.goals,
                 assists: player.assists + gs.assists,
+                yellow_cards: player.yellowCards + gs.yellowCards,
+                red_cards: player.redCards + gs.redCards,
               })
               .eq('id', gs.playerId);
           }
@@ -442,6 +627,17 @@ export const useSupabaseLeagueData = () => {
             points: teamB.points + (isWinB ? 3 : isDrawB ? 1 : 0),
           })
           .eq('id', match.teamBId);
+      }
+
+      // Check if this match corresponds to a fixture and update it
+      const correspondingFixture = fixtures.find(f => 
+        f.teamAId === match.teamAId && 
+        f.teamBId === match.teamBId && 
+        f.status === 'Upcoming'
+      );
+
+      if (correspondingFixture) {
+        await updateFixtureStatus(correspondingFixture.id, matchData.id);
       }
 
       await fetchTeams();
@@ -491,17 +687,26 @@ export const useSupabaseLeagueData = () => {
     });
   };
 
+  const isPlayoffUnlocked = (): boolean => {
+    const groupStageFixtures = fixtures.filter(f => f.stage === 'Group Stage');
+    return groupStageFixtures.length > 0 && groupStageFixtures.every(f => f.status === 'Completed');
+  };
+
   const reset = async () => {
     if (!user) return;
 
     try {
       await supabase.from('goal_scorers').delete().neq('id', '');
       await supabase.from('matches').delete().eq('user_id', user.id);
+      await supabase.from('fixtures').delete().eq('user_id', user.id);
+      await supabase.from('tournament_bracket').delete().eq('user_id', user.id);
       await supabase.from('players').delete().neq('id', '');
       await supabase.from('teams').delete().eq('user_id', user.id);
 
       await fetchTeams();
       await fetchMatches();
+      await fetchFixtures();
+      await fetchBracket();
       toast({
         title: "Success",
         description: "League data reset successfully",
@@ -519,6 +724,8 @@ export const useSupabaseLeagueData = () => {
   return {
     teams,
     matches,
+    fixtures,
+    bracket,
     loading,
     addTeam,
     updateTeam,
@@ -527,8 +734,11 @@ export const useSupabaseLeagueData = () => {
     updatePlayer,
     deletePlayer,
     addMatch,
+    addFixture,
+    updateBracket,
     getTopScorers,
     getSortedTeams,
+    isPlayoffUnlocked,
     reset
   };
 };

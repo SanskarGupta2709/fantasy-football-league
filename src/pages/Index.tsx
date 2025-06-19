@@ -9,6 +9,8 @@ import { TeamsManagement } from '@/components/TeamsManagement';
 import { PlayerManagement } from '@/components/PlayerManagement';
 import { MatchTracker } from '@/components/MatchTracker';
 import { TopScorers } from '@/components/TopScorers';
+import { Fixtures } from '@/components/Fixtures';
+import { PlayoffBracket } from '@/components/PlayoffBracket';
 import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw } from 'lucide-react';
@@ -20,6 +22,8 @@ const Index = () => {
   const {
     teams,
     matches,
+    fixtures,
+    bracket,
     loading,
     addTeam,
     updateTeam,
@@ -28,8 +32,11 @@ const Index = () => {
     updatePlayer,
     deletePlayer,
     addMatch,
+    addFixture,
+    updateBracket,
     getTopScorers,
     getSortedTeams,
+    isPlayoffUnlocked,
     reset
   } = useSupabaseLeagueData();
 
@@ -88,6 +95,14 @@ const Index = () => {
             onDeletePlayer={deletePlayer}
           />
         );
+      case 'fixtures':
+        return (
+          <Fixtures
+            teams={teams}
+            fixtures={fixtures}
+            onAddFixture={addFixture}
+          />
+        );
       case 'matches':
         return (
           <MatchTracker
@@ -96,10 +111,45 @@ const Index = () => {
             onAddMatch={addMatch}
           />
         );
+      case 'bracket':
+        return (
+          <PlayoffBracket
+            teams={teams}
+            bracket={bracket}
+            onUpdateBracket={updateBracket}
+            isUnlocked={isPlayoffUnlocked()}
+          />
+        );
       case 'scorers':
         return <TopScorers topScorers={topScorers} />;
       default:
         return <Dashboard teams={sortedTeams} matches={matches} topScorers={topScorers} sortedTeams={sortedTeams} />;
+    }
+  };
+
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'League Dashboard';
+      case 'teams': return 'Team Management';
+      case 'players': return 'Player Management';
+      case 'fixtures': return 'Match Fixtures';
+      case 'matches': return 'Match Tracker';
+      case 'bracket': return 'Playoff Bracket';
+      case 'scorers': return 'Top Scorers';
+      default: return 'League Dashboard';
+    }
+  };
+
+  const getTabDescription = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Overview of your fantasy football league';
+      case 'teams': return 'Manage teams and players';
+      case 'players': return 'Manage all players across teams';
+      case 'fixtures': return 'Schedule upcoming matches';
+      case 'matches': return 'Add and track match results';
+      case 'bracket': return 'View and manage playoff brackets';
+      case 'scorers': return 'View top 5 goal scorers and assists';
+      default: return 'Overview of your fantasy football league';
     }
   };
 
@@ -110,20 +160,8 @@ const Index = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              {activeTab === 'dashboard' && 'League Dashboard'}
-              {activeTab === 'teams' && 'Team Management'}
-              {activeTab === 'players' && 'Player Management'}
-              {activeTab === 'matches' && 'Match Tracker'}
-              {activeTab === 'scorers' && 'Top Scorers'}
-            </h2>
-            <p className="text-gray-600">
-              {activeTab === 'dashboard' && 'Overview of your fantasy football league'}
-              {activeTab === 'teams' && 'Manage teams and players'}
-              {activeTab === 'players' && 'Manage all players across teams'}
-              {activeTab === 'matches' && 'Add and track match results'}
-              {activeTab === 'scorers' && 'View top 5 goal scorers and assists'}
-            </p>
+            <h2 className="text-2xl font-bold text-gray-800">{getTabTitle()}</h2>
+            <p className="text-gray-600">{getTabDescription()}</p>
           </div>
           
           <Button
