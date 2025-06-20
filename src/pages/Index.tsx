@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -199,21 +200,6 @@ const Index = () => {
               <p className="text-gray-600 text-sm sm:text-base break-words">{getTabDescription()}</p>
             </div>
             
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 shrink-0"
-            >
-              <RotateCcw className="h-4 w-4" />
-              <span className="hidden sm:inline">Reset League</span>
-              <span className="sm:hidden">Reset</span>
-            </Button>
-          </div>
-        )}
-
-        {/* Only show reset button for dashboard */}
-        {activeTab === 'dashboard' && (
-          <div className="flex justify-end mb-4 sm:mb-6">
             <Button
               variant="outline"
               onClick={handleReset}
