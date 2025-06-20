@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -81,6 +80,7 @@ const Index = () => {
             matches={matches}
             topScorers={topScorers}
             sortedTeams={sortedTeams}
+            onReset={handleReset}
           />
         );
       case 'leaderboard':
@@ -132,6 +132,7 @@ const Index = () => {
             matches={matches}
             topScorers={topScorers}
             sortedTeams={sortedTeams}
+            onReset={handleReset}
           />
         );
     }

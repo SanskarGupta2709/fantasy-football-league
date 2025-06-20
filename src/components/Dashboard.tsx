@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Users, Calendar, Target, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, Users, Calendar, Target, Award, RotateCcw } from "lucide-react";
 import { Team, Match, Player } from "@/utils/storage";
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -9,9 +10,10 @@ interface DashboardProps {
   matches: Match[];
   topScorers: Array<Player & { teamName: string }>;
   sortedTeams: Team[];
+  onReset: () => void;
 }
 
-export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: DashboardProps) => {
+export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset }: DashboardProps) => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
   const firstName = userName.split(' ')[0];
@@ -34,8 +36,8 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Personalized Header */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 sm:p-6 rounded-lg border border-green-200">
+      {/* Personalized Header with Reset Button */}
+      <div className="relative bg-gradient-to-r from-green-50 to-blue-50 p-4 sm:p-6 rounded-lg border border-green-200">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2 break-words">
           <span className="hidden sm:inline">Welcome back, {userName}! ⚽</span>
           <span className="sm:hidden">Welcome back, {firstName}! ⚽</span>
@@ -44,6 +46,30 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams }: Dashboard
           <span className="hidden sm:inline">Ready to manage your Fantasy Football League? Here's your league overview.</span>
           <span className="sm:hidden">Here's your league overview.</span>
         </p>
+        
+        {/* Reset Button - positioned absolutely on larger screens, block on mobile */}
+        <div className="absolute top-4 right-4 hidden sm:block">
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 bg-white/80 backdrop-blur-sm"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Reset League</span>
+          </Button>
+        </div>
+        
+        {/* Reset Button for mobile - centered below text */}
+        <div className="mt-4 sm:hidden flex justify-center">
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Reset League</span>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}

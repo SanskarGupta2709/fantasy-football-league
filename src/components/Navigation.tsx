@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table } from 'lucide-react';
@@ -23,7 +22,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'players', label: 'Players', icon: UserPlus },
     { id: 'tournament', label: 'Tournament Mode', icon: Zap },
     { id: 'matches', label: 'Matches', icon: Target },
-    { id: 'scorers', label: 'Top Scorers', icon: Target },
   ];
 
   return (
