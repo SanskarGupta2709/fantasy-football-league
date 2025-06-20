@@ -85,12 +85,20 @@
 
   body {
     @apply text-foreground min-h-screen;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(21, 128, 61, 0.8) 50%, rgba(22, 101, 52, 0.7) 100%),
-                url("data:image/svg+xml,%3Csvg width='100' height='60' viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M50 30c11.046 0 20-8.954 20-20S61.046-10 50-10s-20 8.954-20 20 8.954 20 20 20z'/%3E%3Cpath d='M50 20h40v2H50zM50 40h40v2H50zM50 0h40v2H50z'/%3E%3Cpath d='M10 20h40v2H10zM10 40h40v2H10zM10 0h40v2H10z'/%3E%3Cpath d='M15 5h70v50H15z' stroke='%23ffffff' stroke-opacity='0.1' stroke-width='1' fill='none'/%3E%3Cpath d='M25 15h50v20H25z' stroke='%23ffffff' stroke-opacity='0.1' stroke-width='1' fill='none'/%3E%3Ccircle cx='50' cy='30' r='8' stroke='%23ffffff' stroke-opacity='0.1' stroke-width='1' fill='none'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    background-size: cover, 200px 120px;
-    background-position: center center, center center;
-    background-attachment: fixed, scroll;
-    background-repeat: no-repeat, repeat;
+    /* Enhanced football pitch background with visible stadium atmosphere */
+    background: 
+      /* Dark overlay for text readability */
+      linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
+      /* Stadium floodlight gradients from corners */
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at top right, rgba(255,255,255,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(255,255,255,0.1) 0%, transparent 50%),
+      /* Football pitch gradient base */
+      linear-gradient(135deg, #1e4d2b 0%, #2d5a32 25%, #1a4227 50%, #2d5a32 75%, #1e4d2b 100%);
+    background-size: cover, 200% 200%, 200% 200%, 200% 200%, 200% 200%, cover;
+    background-position: center, top left, top right, bottom left, bottom right, center;
+    background-attachment: fixed;
     position: relative;
     overflow-x: hidden;
   }
@@ -103,20 +111,32 @@
     right: 0;
     bottom: 0;
     background-image: 
-      /* Stadium floodlight effects */
-      radial-gradient(ellipse at top left, rgba(255,255,255,0.1) 0%, transparent 70%),
-      radial-gradient(ellipse at top right, rgba(255,255,255,0.1) 0%, transparent 70%),
-      /* Football pitch center circle */
-      radial-gradient(circle at 50% 50%, transparent 80px, rgba(255,255,255,0.1) 82px, rgba(255,255,255,0.1) 84px, transparent 86px),
+      /* Center circle */
+      radial-gradient(circle at 50% 50%, transparent 90px, rgba(255,255,255,0.3) 92px, rgba(255,255,255,0.3) 94px, transparent 96px),
+      /* Penalty areas */
+      linear-gradient(90deg, transparent 15%, rgba(255,255,255,0.15) 15%, rgba(255,255,255,0.15) 25%, transparent 25%),
+      linear-gradient(90deg, transparent 75%, rgba(255,255,255,0.15) 75%, rgba(255,255,255,0.15) 85%, transparent 85%),
       /* Goal areas */
-      linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.05) 10%, rgba(255,255,255,0.05) 20%, transparent 20%),
-      linear-gradient(90deg, transparent 80%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.05) 90%, transparent 90%),
-      /* Yard lines */
-      repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,0.1) 49px, rgba(255,255,255,0.1) 51px);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100px 100px;
-    background-position: 0 0, 0 0, center center, left center, right center, 0 0;
+      linear-gradient(90deg, transparent 18%, rgba(255,255,255,0.2) 18%, rgba(255,255,255,0.2) 22%, transparent 22%),
+      linear-gradient(90deg, transparent 78%, rgba(255,255,255,0.2) 78%, rgba(255,255,255,0.2) 82%, transparent 82%),
+      /* Center line */
+      linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.25) 49%, rgba(255,255,255,0.25) 51%, transparent 51%),
+      /* Sidelines */
+      linear-gradient(0deg, transparent 8%, rgba(255,255,255,0.2) 8%, rgba(255,255,255,0.2) 10%, transparent 10%),
+      linear-gradient(0deg, transparent 90%, rgba(255,255,255,0.2) 90%, rgba(255,255,255,0.2) 92%, transparent 92%);
+    background-size: 
+      100% 100%, 
+      100% 100%, 
+      100% 100%, 
+      100% 100%, 
+      100% 100%, 
+      100% 100%, 
+      100% 100%, 
+      100% 100%;
+    background-position: center center;
     pointer-events: none;
     z-index: -2;
+    animation: pitchGlow 8s ease-in-out infinite;
   }
 
   body::after {
@@ -127,16 +147,20 @@
     right: 0;
     bottom: 0;
     background-image: 
-      url("data:image/svg+xml,%3Csvg width='60' height='80' viewBox='0 0 60 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ctext x='30' y='40' text-anchor='middle' font-size='30'%3E⚽%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg width='80' height='60' viewBox='0 0 80 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffff00' fill-opacity='0.04'%3E%3Ctext x='40' y='35' text-anchor='middle' font-size='20'%3E🏆%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg width='70' height='90' viewBox='0 0 70 90' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ff0000' fill-opacity='0.04'%3E%3Ctext x='35' y='50' text-anchor='middle' font-size='25'%3E🥅%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg width='90' height='70' viewBox='0 0 90 70' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='0.04'%3E%3Ctext x='45' y='40' text-anchor='middle' font-size='20'%3E🧤%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    background-size: 120px 160px, 160px 120px, 140px 180px, 180px 140px;
-    background-position: 15% 20%, 85% 60%, 25% 80%, 75% 30%;
+      /* Floating football emojis */
+      url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Ctext x='40' y='45' text-anchor='middle' font-size='35'%3E⚽%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+      /* Trophy icons */
+      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='0.06'%3E%3Ctext x='50' y='55' text-anchor='middle' font-size='30'%3E🏆%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+      /* Goal posts */
+      url("data:image/svg+xml,%3Csvg width='90' height='90' viewBox='0 0 90 90' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ctext x='45' y='50' text-anchor='middle' font-size='28'%3E🥅%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+      /* Gloves */
+      url("data:image/svg+xml,%3Csvg width='70' height='70' viewBox='0 0 70 70' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ctext x='35' y='40' text-anchor='middle' font-size='22'%3E🧤%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-size: 160px 160px, 200px 200px, 180px 180px, 140px 140px;
+    background-position: 20% 30%, 80% 70%, 30% 80%, 70% 20%;
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: -1;
-    animation: footballFloat 25s ease-in-out infinite;
+    animation: footballFloat 20s ease-in-out infinite;
   }
 }
 
@@ -179,13 +203,22 @@
       transform: translateY(0px) translateX(0px) rotate(0deg);
     }
     25% {
-      transform: translateY(-15px) translateX(10px) rotate(5deg);
+      transform: translateY(-20px) translateX(15px) rotate(8deg);
     }
     50% {
-      transform: translateY(0px) translateX(-8px) rotate(0deg);
+      transform: translateY(5px) translateX(-12px) rotate(0deg);
     }
     75% {
-      transform: translateY(8px) translateX(5px) rotate(-3deg);
+      transform: translateY(15px) translateX(8px) rotate(-5deg);
+    }
+  }
+
+  @keyframes pitchGlow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
     }
   }
 
@@ -207,18 +240,37 @@
     }
   }
 
-  /* Stadium atmosphere effects */
+  /* Enhanced stadium atmosphere effects */
   .stadium-glow {
     box-shadow: 
-      0 0 20px rgba(34, 197, 94, 0.3),
-      0 0 40px rgba(34, 197, 94, 0.2),
-      inset 0 0 20px rgba(255, 255, 255, 0.1);
+      0 0 30px rgba(34, 197, 94, 0.4),
+      0 0 60px rgba(34, 197, 94, 0.3),
+      inset 0 0 30px rgba(255, 255, 255, 0.15);
   }
 
   .pitch-lines {
     background-image: 
-      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-      linear-gradient(0deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+      linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.15) 1px, transparent 1px);
     background-size: 50px 50px;
+  }
+
+  /* Floodlight animation for corners */
+  .floodlight-effect {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+    animation: floodlightRotate 15s linear infinite;
+  }
+
+  @keyframes floodlightRotate {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.3; }
+    25% { transform: rotate(90deg) scale(1.2); opacity: 0.5; }
+    50% { transform: rotate(180deg) scale(1); opacity: 0.3; }
+    75% { transform: rotate(270deg) scale(1.1); opacity: 0.4; }
+    100% { transform: rotate(360deg) scale(1); opacity: 0.3; }
   }
 }
