@@ -19,6 +19,22 @@ import realMadridLogo from "@/assets/logos/real-madrid.png";
 import barcelonaLogo from "@/assets/logos/barcelona.png";
 import bayernLogo from "@/assets/logos/bayern.png";
 import juventusLogo from "@/assets/logos/juventus.png";
+import tottenhamLogo from "@/assets/logos/tottenham.png";
+import psgLogo from "@/assets/logos/psg.png";
+import dortmundLogo from "@/assets/logos/dortmund.png";
+import acMilanLogo from "@/assets/logos/ac-milan.png";
+import interMilanLogo from "@/assets/logos/inter-milan.png";
+import atleticoMadridLogo from "@/assets/logos/atletico-madrid.png";
+
+// Import custom fantasy logos
+import dragonsFcLogo from "@/assets/logos/dragons-fc.png";
+import lionsUnitedLogo from "@/assets/logos/lions-united.png";
+import eaglesFcLogo from "@/assets/logos/eagles-fc.png";
+import lightningFcLogo from "@/assets/logos/lightning-fc.png";
+import knightsFcLogo from "@/assets/logos/knights-fc.png";
+import wolvesFcLogo from "@/assets/logos/wolves-fc.png";
+import starsFcLogo from "@/assets/logos/stars-fc.png";
+import phoenixFcLogo from "@/assets/logos/phoenix-fc.png";
 
 interface TeamsManagementProps {
   teams: Team[];
@@ -39,28 +55,54 @@ export const TeamsManagement = ({
 }: TeamsManagementProps) => {
   const { toast } = useToast();
 
-  // Real football club logos with fallback emojis
+  // Comprehensive logo library with real football clubs and fantasy teams
   const logoOptions = [
-    { name: "Arsenal", logo: arsenalLogo, fallback: '🔴' },
-    { name: "Chelsea", logo: chelseaLogo, fallback: '🔵' },
-    { name: "Liverpool", logo: liverpoolLogo, fallback: '❤️' },
-    { name: "Manchester United", logo: manchesterUnitedLogo, fallback: '👹' },
-    { name: "Manchester City", logo: manchesterCityLogo, fallback: '💙' },
-    { name: "Real Madrid", logo: realMadridLogo, fallback: '👑' },
-    { name: "Barcelona", logo: barcelonaLogo, fallback: '🔴' },
-    { name: "Bayern Munich", logo: bayernLogo, fallback: '🔴' },
-    { name: "Juventus", logo: juventusLogo, fallback: '⚫' },
-    // Fallback emoji options
-    { name: "Custom 1", logo: '⚽', fallback: '⚽' },
-    { name: "Custom 2", logo: '🛡️', fallback: '🛡️' },
-    { name: "Custom 3", logo: '⭐', fallback: '⭐' },
-    { name: "Custom 4", logo: '🔥', fallback: '🔥' },
-    { name: "Custom 5", logo: '⚡', fallback: '⚡' },
-    { name: "Custom 6", logo: '💎', fallback: '💎' },
-    { name: "Custom 7", logo: '🦅', fallback: '🦅' },
-    { name: "Custom 8", logo: '🐺', fallback: '🐺' },
-    { name: "Custom 9", logo: '🦁', fallback: '🦁' },
-    { name: "Custom 10", logo: '🏆', fallback: '🏆' },
+    // Premier League clubs
+    { name: "Arsenal", logo: arsenalLogo, category: "Premier League" },
+    { name: "Chelsea", logo: chelseaLogo, category: "Premier League" },
+    { name: "Liverpool", logo: liverpoolLogo, category: "Premier League" },
+    { name: "Manchester United", logo: manchesterUnitedLogo, category: "Premier League" },
+    { name: "Manchester City", logo: manchesterCityLogo, category: "Premier League" },
+    { name: "Tottenham", logo: tottenhamLogo, category: "Premier League" },
+    
+    // La Liga clubs
+    { name: "Real Madrid", logo: realMadridLogo, category: "La Liga" },
+    { name: "Barcelona", logo: barcelonaLogo, category: "La Liga" },
+    { name: "Atletico Madrid", logo: atleticoMadridLogo, category: "La Liga" },
+    
+    // Bundesliga clubs
+    { name: "Bayern Munich", logo: bayernLogo, category: "Bundesliga" },
+    { name: "Borussia Dortmund", logo: dortmundLogo, category: "Bundesliga" },
+    
+    // Serie A clubs
+    { name: "Juventus", logo: juventusLogo, category: "Serie A" },
+    { name: "AC Milan", logo: acMilanLogo, category: "Serie A" },
+    { name: "Inter Milan", logo: interMilanLogo, category: "Serie A" },
+    
+    // Ligue 1 clubs
+    { name: "PSG", logo: psgLogo, category: "Ligue 1" },
+    
+    // Fantasy teams
+    { name: "Dragons FC", logo: dragonsFcLogo, category: "Fantasy" },
+    { name: "Lions United", logo: lionsUnitedLogo, category: "Fantasy" },
+    { name: "Eagles FC", logo: eaglesFcLogo, category: "Fantasy" },
+    { name: "Lightning FC", logo: lightningFcLogo, category: "Fantasy" },
+    { name: "Knights FC", logo: knightsFcLogo, category: "Fantasy" },
+    { name: "Wolves FC", logo: wolvesFcLogo, category: "Fantasy" },
+    { name: "Stars FC", logo: starsFcLogo, category: "Fantasy" },
+    { name: "Phoenix FC", logo: phoenixFcLogo, category: "Fantasy" },
+    
+    // Emoji fallbacks
+    { name: "Custom Ball", logo: '⚽', category: "Custom" },
+    { name: "Custom Shield", logo: '🛡️', category: "Custom" },
+    { name: "Custom Star", logo: '⭐', category: "Custom" },
+    { name: "Custom Fire", logo: '🔥', category: "Custom" },
+    { name: "Custom Thunder", logo: '⚡', category: "Custom" },
+    { name: "Custom Diamond", logo: '💎', category: "Custom" },
+    { name: "Custom Eagle", logo: '🦅', category: "Custom" },
+    { name: "Custom Wolf", logo: '🐺', category: "Custom" },
+    { name: "Custom Lion", logo: '🦁', category: "Custom" },
+    { name: "Custom Trophy", logo: '🏆', category: "Custom" },
   ];
 
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -172,43 +214,114 @@ export const TeamsManagement = ({
             </div>
             <div>
               <Label htmlFor="logo">Team Logo/Badge</Label>
-              <Select value={newTeam.logo} onValueChange={(value) => setNewTeam({ ...newTeam, logo: value })}>
-                <SelectTrigger className="bg-white/90 backdrop-blur-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-64 bg-white/95 backdrop-blur-sm">
-                  <div className="grid grid-cols-3 gap-2 p-2">
-                    {logoOptions.map((option, index) => (
-                      <SelectItem 
-                        key={index} 
-                        value={typeof option.logo === 'string' ? option.logo : option.fallback}
-                        className="flex items-center justify-center p-3 hover:bg-green-50 cursor-pointer rounded"
-                      >
-                        <div className="flex flex-col items-center space-y-1">
-                           {option.logo.startsWith('http') || option.logo.includes('.png') || option.logo.includes('.jpg') ? (
-                             <img 
-                               src={option.logo} 
-                               alt={option.name}
-                               className="w-8 h-8 object-contain hover:scale-110 transition-transform rounded"
-                               onError={(e) => {
-                                 const target = e.currentTarget as HTMLImageElement;
-                                 target.style.display = 'none';
-                                 const parent = target.parentElement;
-                                 if (parent) {
-                                   parent.innerHTML = `<span class="text-2xl">${option.fallback}</span>`;
-                                 }
-                               }}
-                             />
-                           ) : (
-                             <span className="text-2xl hover:scale-110 transition-transform">{option.logo}</span>
-                           )}
-                          <span className="text-xs text-gray-600">{option.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+              <div className="space-y-2">
+                {/* Current selection display with improved alignment */}
+                <div className="flex items-center space-x-3 p-3 bg-white/90 backdrop-blur-sm border rounded-md">
+                  <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
+                    {newTeam.logo.includes('.png') || newTeam.logo.includes('.jpg') || newTeam.logo.startsWith('http') ? (
+                      <img 
+                        src={newTeam.logo} 
+                        alt="Selected logo"
+                        className="w-8 h-8 object-contain rounded-full"
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<span class="text-xl">⚽</span>`;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span className="text-xl">{newTeam.logo}</span>
+                    )}
                   </div>
-                </SelectContent>
-              </Select>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {logoOptions.find(opt => opt.logo === newTeam.logo)?.name || 'Selected Logo'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {logoOptions.find(opt => opt.logo === newTeam.logo)?.category || 'Custom'}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Logo selection modal */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full bg-white/90 hover:bg-white">
+                      Choose Logo
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-white/95 backdrop-blur-sm">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center space-x-2">
+                        <span>🏆 Choose Team Logo</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="overflow-y-auto max-h-[60vh] pr-2">
+                      <div className="space-y-6">
+                        {/* Group logos by category */}
+                        {['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'Fantasy', 'Custom'].map(category => (
+                          <div key={category} className="space-y-3">
+                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                              {category}
+                            </h3>
+                            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+                              {logoOptions
+                                .filter(option => option.category === category)
+                                .map((option, index) => (
+                                <button
+                                  key={`${category}-${index}`}
+                                  onClick={() => {
+                                    setNewTeam({ ...newTeam, logo: option.logo });
+                                  }}
+                                  className={`group relative p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+                                    newTeam.logo === option.logo 
+                                      ? 'border-green-400 bg-green-50 shadow-md' 
+                                      : 'border-gray-200 hover:border-green-300 bg-white'
+                                  }`}
+                                  title={`${option.name} (${option.category})`}
+                                >
+                                  <div className="flex flex-col items-center space-y-2">
+                                    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-green-50 group-hover:to-blue-50">
+                                      {option.logo.includes('.png') || option.logo.includes('.jpg') || option.logo.startsWith('http') ? (
+                                        <img 
+                                          src={option.logo} 
+                                          alt={option.name}
+                                          className="w-10 h-10 object-contain rounded-full transition-transform group-hover:scale-110"
+                                          onError={(e) => {
+                                            const target = e.currentTarget as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                              parent.innerHTML = `<span class="text-2xl">⚽</span>`;
+                                            }
+                                          }}
+                                        />
+                                      ) : (
+                                        <span className="text-2xl transition-transform group-hover:scale-110">{option.logo}</span>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-gray-600 text-center font-medium truncate w-full">
+                                      {option.name}
+                                    </span>
+                                  </div>
+                                  {newTeam.logo === option.logo && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                      <span className="text-white text-xs">✓</span>
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             <div className="flex items-end">
               <Button onClick={handleAddTeam} className="w-full football-gradient hover:shadow-lg">
