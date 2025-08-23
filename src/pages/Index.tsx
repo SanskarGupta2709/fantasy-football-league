@@ -34,6 +34,7 @@ const Index = () => {
     deletePlayer,
     addMatch,
     updateMatch,
+    deleteMatch,
     addFixture,
     updateBracket,
     getTopScorers,
@@ -126,6 +127,7 @@ const Index = () => {
           matches={matches} 
           onAddMatch={addMatch}
           onUpdateMatch={updateMatch}
+          onDeleteMatch={deleteMatch}
         />
         );
       default:

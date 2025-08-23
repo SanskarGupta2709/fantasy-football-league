@@ -894,6 +894,113 @@ export const useSupabaseLeagueData = () => {
     }
   };
 
+  const deleteMatch = async (matchId: string) => {
+    if (!user) return;
+
+    try {
+      const matchToDelete = matches.find(m => m.id === matchId);
+      if (!matchToDelete) throw new Error('Match not found');
+
+      // First, reverse the match stats from players
+      if (matchToDelete.goalScorers.length > 0) {
+        for (const gs of matchToDelete.goalScorers) {
+          const player = teams.flatMap(t => t.players).find(p => p.id === gs.playerId);
+          if (player) {
+            await supabase
+              .from('players')
+              .update({
+                goals: Math.max(0, player.goals - gs.goals),
+                assists: Math.max(0, player.assists - gs.assists),
+                yellow_cards: Math.max(0, player.yellowCards - gs.yellowCards),
+                red_cards: Math.max(0, player.redCards - gs.redCards),
+              })
+              .eq('id', gs.playerId);
+          }
+        }
+      }
+
+      // Reverse team statistics
+      const teamA = teams.find(t => t.id === matchToDelete.teamAId);
+      const teamB = teams.find(t => t.id === matchToDelete.teamBId);
+
+      if (teamA) {
+        const wasWinA = matchToDelete.teamAScore > matchToDelete.teamBScore;
+        const wasDrawA = matchToDelete.teamAScore === matchToDelete.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: Math.max(0, teamA.matchesPlayed - 1),
+            wins: Math.max(0, teamA.wins - (wasWinA ? 1 : 0)),
+            draws: Math.max(0, teamA.draws - (wasDrawA ? 1 : 0)),
+            losses: Math.max(0, teamA.losses - (!wasWinA && !wasDrawA ? 1 : 0)),
+            goals_for: Math.max(0, teamA.goalsFor - matchToDelete.teamAScore),
+            goals_against: Math.max(0, teamA.goalsAgainst - matchToDelete.teamBScore),
+            points: Math.max(0, teamA.points - (wasWinA ? 3 : wasDrawA ? 1 : 0)),
+          })
+          .eq('id', matchToDelete.teamAId);
+      }
+
+      if (teamB) {
+        const wasWinB = matchToDelete.teamBScore > matchToDelete.teamAScore;
+        const wasDrawB = matchToDelete.teamAScore === matchToDelete.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: Math.max(0, teamB.matchesPlayed - 1),
+            wins: Math.max(0, teamB.wins - (wasWinB ? 1 : 0)),
+            draws: Math.max(0, teamB.draws - (wasDrawB ? 1 : 0)),
+            losses: Math.max(0, teamB.losses - (!wasWinB && !wasDrawB ? 1 : 0)),
+            goals_for: Math.max(0, teamB.goalsFor - matchToDelete.teamBScore),
+            goals_against: Math.max(0, teamB.goalsAgainst - matchToDelete.teamAScore),
+            points: Math.max(0, teamB.points - (wasWinB ? 3 : wasDrawB ? 1 : 0)),
+          })
+          .eq('id', matchToDelete.teamBId);
+      }
+
+      // Delete goal scorers first
+      await supabase
+        .from('goal_scorers')
+        .delete()
+        .eq('match_id', matchId);
+
+      // Delete the match
+      const { error } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update any corresponding fixture status back to 'Upcoming'
+      const correspondingFixture = fixtures.find(f => f.matchId === matchId);
+      if (correspondingFixture) {
+        await supabase
+          .from('fixtures')
+          .update({
+            status: 'Upcoming',
+            match_id: null,
+          })
+          .eq('id', correspondingFixture.id);
+      }
+
+      await fetchTeams();
+      await fetchMatches();
+      await fetchFixtures();
+      toast({
+        title: "Success",
+        description: "Match deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete match",
+        variant: "destructive"
+      });
+    }
+  };
+
   const reset = async () => {
     if (!user) return;
 
@@ -937,6 +1044,7 @@ export const useSupabaseLeagueData = () => {
     deletePlayer,
     addMatch,
     updateMatch,
+    deleteMatch,
     addFixture,
     updateBracket,
     getTopScorers,

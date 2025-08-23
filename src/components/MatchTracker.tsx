@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, Trash2, Edit } from 'lucide-react';
 import { Team, Match, GoalScorer } from '@/hooks/useSupabaseLeagueData';
 import { EditMatchModal } from "./EditMatchModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface MatchTrackerProps {
   teams: Team[];
   matches: Match[];
   onAddMatch: (match: Omit<Match, 'id'>) => void;
   onUpdateMatch: (matchId: string, updates: Partial<Match>) => void;
+  onDeleteMatch: (matchId: string) => void;
 }
 
 interface PlayerStats {
@@ -24,7 +26,7 @@ interface PlayerStats {
   redCards: number;
 }
 
-export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAddMatch, onUpdateMatch }) => {
+export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAddMatch, onUpdateMatch, onDeleteMatch }) => {
   const [showForm, setShowForm] = useState(false);
   const [showAnimations, setShowAnimations] = useState(false);
   const [animationData, setAnimationData] = useState<{ goals: any[], redCards: any[] }>({ goals: [], redCards: [] });
@@ -480,15 +482,46 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                     
                     <div className="text-right ml-8">
                       <div className="flex flex-col space-y-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditMatch(match)}
-                          className="animate-hover-scale"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditMatch(match)}
+                            className="animate-hover-scale"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="hover:bg-red-50 hover:border-red-200"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Match</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this match? This will also update all related stats and cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => onDeleteMatch(match.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete Match
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                         <Badge className="mb-2">{match.round}</Badge>
                         <p className="text-sm text-gray-500 flex items-center">
                           <Calendar className="h-3 w-3 mr-1" />
