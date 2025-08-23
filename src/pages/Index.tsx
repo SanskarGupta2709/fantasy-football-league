@@ -33,6 +33,7 @@ const Index = () => {
     updatePlayer,
     deletePlayer,
     addMatch,
+    updateMatch,
     addFixture,
     updateBracket,
     getTopScorers,
@@ -120,11 +121,12 @@ const Index = () => {
         );
       case 'matches':
         return (
-          <MatchTracker
-            teams={teams}
-            matches={matches}
-            onAddMatch={addMatch}
-          />
+        <MatchTracker 
+          teams={teams} 
+          matches={matches} 
+          onAddMatch={addMatch}
+          onUpdateMatch={updateMatch}
+        />
         );
       default:
         return (

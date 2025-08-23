@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Edit, Trash2, User } from "lucide-react";
-import { Team, Player } from "@/utils/storage";
+import { Team, Player } from "@/hooks/useSupabaseLeagueData";
 import { useToast } from "@/hooks/use-toast";
+import { EditPlayerModal } from "./EditPlayerModal";
 
 interface PlayerManagementProps {
   teams: Team[];
@@ -25,6 +26,8 @@ export const PlayerManagement = ({
 }: PlayerManagementProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingPlayer, setEditingPlayer] = useState<(Player & { teamId: string; teamName: string }) | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newPlayer, setNewPlayer] = useState({
     name: '',
     jerseyNumber: 1,
@@ -74,7 +77,9 @@ export const PlayerManagement = ({
       jerseyNumber: newPlayer.jerseyNumber,
       position: newPlayer.position as 'Forward' | 'Midfielder' | 'Defender' | 'Goalkeeper',
       goals: newPlayer.goals,
-      assists: newPlayer.assists
+      assists: newPlayer.assists,
+      yellowCards: 0,
+      redCards: 0
     });
 
     setNewPlayer({
@@ -97,8 +102,29 @@ export const PlayerManagement = ({
     return colors[position as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const handleEditPlayer = (player: Player & { teamId: string; teamName: string }) => {
+    setEditingPlayer(player);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSavePlayer = (playerId: string, teamId: string, updates: Partial<Player>) => {
+    onUpdatePlayer(teamId, playerId, updates);
+    setIsEditModalOpen(false);
+    setEditingPlayer(null);
+  };
+
   return (
     <div className="space-y-6">
+      <EditPlayerModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingPlayer(null);
+        }}
+        player={editingPlayer}
+        teams={teams}
+        onSave={handleSavePlayer}
+      />
       {/* Add Player Form */}
       <Card>
         <CardHeader>
@@ -250,13 +276,12 @@ export const PlayerManagement = ({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            // For editing functionality - could be expanded with a modal
-                            toast({
-                              title: "Edit Player",
-                              description: "Edit functionality can be expanded with a modal",
-                            });
-                          }}
+                          onClick={() => handleEditPlayer({
+                            ...player,
+                            teamId: player.teamId,
+                            teamName: player.teamName
+                          })}
+                          className="animate-hover-scale"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>

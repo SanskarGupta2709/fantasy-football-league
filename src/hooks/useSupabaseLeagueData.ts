@@ -536,6 +536,181 @@ export const useSupabaseLeagueData = () => {
     }
   };
 
+  const updateMatch = async (matchId: string, updates: Partial<Match>) => {
+    if (!user) return;
+
+    try {
+      const originalMatch = matches.find(m => m.id === matchId);
+      if (!originalMatch) throw new Error('Match not found');
+
+      // First, reverse the original match stats
+      if (originalMatch.goalScorers.length > 0) {
+        for (const gs of originalMatch.goalScorers) {
+          const player = teams.flatMap(t => t.players).find(p => p.id === gs.playerId);
+          if (player) {
+            await supabase
+              .from('players')
+              .update({
+                goals: Math.max(0, player.goals - gs.goals),
+                assists: Math.max(0, player.assists - gs.assists),
+                yellow_cards: Math.max(0, player.yellowCards - gs.yellowCards),
+                red_cards: Math.max(0, player.redCards - gs.redCards),
+              })
+              .eq('id', gs.playerId);
+          }
+        }
+      }
+
+      // Reverse team statistics for original match
+      const originalTeamA = teams.find(t => t.id === originalMatch.teamAId);
+      const originalTeamB = teams.find(t => t.id === originalMatch.teamBId);
+
+      if (originalTeamA) {
+        const wasWinA = originalMatch.teamAScore > originalMatch.teamBScore;
+        const wasDrawA = originalMatch.teamAScore === originalMatch.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: Math.max(0, originalTeamA.matchesPlayed - 1),
+            wins: Math.max(0, originalTeamA.wins - (wasWinA ? 1 : 0)),
+            draws: Math.max(0, originalTeamA.draws - (wasDrawA ? 1 : 0)),
+            losses: Math.max(0, originalTeamA.losses - (!wasWinA && !wasDrawA ? 1 : 0)),
+            goals_for: Math.max(0, originalTeamA.goalsFor - originalMatch.teamAScore),
+            goals_against: Math.max(0, originalTeamA.goalsAgainst - originalMatch.teamBScore),
+            points: Math.max(0, originalTeamA.points - (wasWinA ? 3 : wasDrawA ? 1 : 0)),
+          })
+          .eq('id', originalMatch.teamAId);
+      }
+
+      if (originalTeamB) {
+        const wasWinB = originalMatch.teamBScore > originalMatch.teamAScore;
+        const wasDrawB = originalMatch.teamAScore === originalMatch.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: Math.max(0, originalTeamB.matchesPlayed - 1),
+            wins: Math.max(0, originalTeamB.wins - (wasWinB ? 1 : 0)),
+            draws: Math.max(0, originalTeamB.draws - (wasDrawB ? 1 : 0)),
+            losses: Math.max(0, originalTeamB.losses - (!wasWinB && !wasDrawB ? 1 : 0)),
+            goals_for: Math.max(0, originalTeamB.goalsFor - originalMatch.teamBScore),
+            goals_against: Math.max(0, originalTeamB.goalsAgainst - originalMatch.teamAScore),
+            points: Math.max(0, originalTeamB.points - (wasWinB ? 3 : wasDrawB ? 1 : 0)),
+          })
+          .eq('id', originalMatch.teamBId);
+      }
+
+      // Update the match record
+      const { error: matchError } = await supabase
+        .from('matches')
+        .update({
+          team_a_id: updates.teamAId || originalMatch.teamAId,
+          team_b_id: updates.teamBId || originalMatch.teamBId,
+          team_a_score: updates.teamAScore ?? originalMatch.teamAScore,
+          team_b_score: updates.teamBScore ?? originalMatch.teamBScore,
+          match_date: updates.date || originalMatch.date,
+          round: (updates.round || originalMatch.round) as 'Group Stage' | 'Round of 16' | 'Quarter Finals' | 'Semi Finals' | 'Final',
+        })
+        .eq('id', matchId)
+        .eq('user_id', user.id);
+
+      if (matchError) throw matchError;
+
+      // Delete old goal scorers
+      await supabase
+        .from('goal_scorers')
+        .delete()
+        .eq('match_id', matchId);
+
+      // Add new goal scorers
+      if (updates.goalScorers && updates.goalScorers.length > 0) {
+        const goalScorersToInsert = updates.goalScorers.map(gs => ({
+          match_id: matchId,
+          player_id: gs.playerId,
+          team_id: gs.teamId,
+          goals: gs.goals,
+          assists: gs.assists,
+          yellow_cards: gs.yellowCards,
+          red_cards: gs.redCards,
+        }));
+
+        const { error: goalScorersError } = await supabase
+          .from('goal_scorers')
+          .insert(goalScorersToInsert);
+
+        if (goalScorersError) throw goalScorersError;
+
+        // Update player stats with new values
+        for (const gs of updates.goalScorers) {
+          const player = teams.flatMap(t => t.players).find(p => p.id === gs.playerId);
+          if (player) {
+            await supabase
+              .from('players')
+              .update({
+                goals: player.goals + gs.goals,
+                assists: player.assists + gs.assists,
+                yellow_cards: player.yellowCards + gs.yellowCards,
+                red_cards: player.redCards + gs.redCards,
+              })
+              .eq('id', gs.playerId);
+          }
+        }
+      }
+
+      // Update team statistics with new values
+      const updatedMatch = { ...originalMatch, ...updates };
+      const teamA = teams.find(t => t.id === updatedMatch.teamAId);
+      const teamB = teams.find(t => t.id === updatedMatch.teamBId);
+
+      if (teamA) {
+        const isWinA = updatedMatch.teamAScore > updatedMatch.teamBScore;
+        const isDrawA = updatedMatch.teamAScore === updatedMatch.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: teamA.matchesPlayed + 1,
+            wins: teamA.wins + (isWinA ? 1 : 0),
+            draws: teamA.draws + (isDrawA ? 1 : 0),
+            losses: teamA.losses + (!isWinA && !isDrawA ? 1 : 0),
+            goals_for: teamA.goalsFor + updatedMatch.teamAScore,
+            goals_against: teamA.goalsAgainst + updatedMatch.teamBScore,
+            points: teamA.points + (isWinA ? 3 : isDrawA ? 1 : 0),
+          })
+          .eq('id', updatedMatch.teamAId);
+      }
+
+      if (teamB) {
+        const isWinB = updatedMatch.teamBScore > updatedMatch.teamAScore;
+        const isDrawB = updatedMatch.teamAScore === updatedMatch.teamBScore;
+        await supabase
+          .from('teams')
+          .update({
+            matches_played: teamB.matchesPlayed + 1,
+            wins: teamB.wins + (isWinB ? 1 : 0),
+            draws: teamB.draws + (isDrawB ? 1 : 0),
+            losses: teamB.losses + (!isWinB && !isDrawB ? 1 : 0),
+            goals_for: teamB.goalsFor + updatedMatch.teamBScore,
+            goals_against: teamB.goalsAgainst + updatedMatch.teamAScore,
+            points: teamB.points + (isWinB ? 3 : isDrawB ? 1 : 0),
+          })
+          .eq('id', updatedMatch.teamBId);
+      }
+
+      await fetchTeams();
+      await fetchMatches();
+      toast({
+        title: "Success",
+        description: "Match updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update match",
+        variant: "destructive"
+      });
+    }
+  };
+
   const addMatch = async (match: Omit<Match, 'id'>) => {
     if (!user) return;
 
@@ -761,6 +936,7 @@ export const useSupabaseLeagueData = () => {
     updatePlayer,
     deletePlayer,
     addMatch,
+    updateMatch,
     addFixture,
     updateBracket,
     getTopScorers,

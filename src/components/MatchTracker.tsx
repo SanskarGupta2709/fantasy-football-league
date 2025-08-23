@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Trash2, Edit } from 'lucide-react';
 import { Team, Match, GoalScorer } from '@/hooks/useSupabaseLeagueData';
+import { EditMatchModal } from "./EditMatchModal";
 
 interface MatchTrackerProps {
   teams: Team[];
   matches: Match[];
   onAddMatch: (match: Omit<Match, 'id'>) => void;
+  onUpdateMatch: (matchId: string, updates: Partial<Match>) => void;
 }
 
 interface PlayerStats {
@@ -22,10 +24,12 @@ interface PlayerStats {
   redCards: number;
 }
 
-export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAddMatch }) => {
+export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAddMatch, onUpdateMatch }) => {
   const [showForm, setShowForm] = useState(false);
   const [showAnimations, setShowAnimations] = useState(false);
   const [animationData, setAnimationData] = useState<{ goals: any[], redCards: any[] }>({ goals: [], redCards: [] });
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const [matchData, setMatchData] = useState({
     teamAId: '',
@@ -195,8 +199,29 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
     return events;
   };
 
+  const handleEditMatch = (match: Match) => {
+    setEditingMatch(match);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveMatch = (matchId: string, updates: Partial<Match>) => {
+    onUpdateMatch(matchId, updates);
+    setIsEditModalOpen(false);
+    setEditingMatch(null);
+  };
+
   return (
     <div className="space-y-6">
+      <EditMatchModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingMatch(null);
+        }}
+        match={editingMatch}
+        teams={teams}
+        onSave={handleSaveMatch}
+      />
       {/* Match Animations */}
       {showAnimations && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -454,11 +479,22 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                     </div>
                     
                     <div className="text-right ml-8">
-                      <Badge className="mb-2">{match.round}</Badge>
-                      <p className="text-sm text-gray-500 flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(match.date).toLocaleDateString()}
-                      </p>
+                      <div className="flex flex-col space-y-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditMatch(match)}
+                          className="animate-hover-scale"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Badge className="mb-2">{match.round}</Badge>
+                        <p className="text-sm text-gray-500 flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(match.date).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   
