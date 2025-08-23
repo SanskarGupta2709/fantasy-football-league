@@ -358,7 +358,22 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                   }}
                   className="flex items-center space-x-2 justify-start"
                 >
-                  <span>{team.logo}</span>
+                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                    {team.logo ? (
+                      <img 
+                        src={team.logo} 
+                        alt={`${team.name} logo`}
+                        className="w-6 h-6 object-cover rounded-full border border-gray-200"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs ${team.logo ? 'hidden' : ''}`}>
+                      ⚽
+                    </div>
+                  </div>
                   <span className="truncate">{team.name}</span>
                 </Button>
               ))}
@@ -467,7 +482,22 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <span className="text-lg">{team.logo}</span>
+                              <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                                {team.logo ? (
+                                  <img 
+                                    src={team.logo} 
+                                    alt={`${team.name} logo`}
+                                    className="w-8 h-8 object-cover rounded-full border border-gray-200"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 ${team.logo ? 'hidden' : ''}`}>
+                                  ⚽
+                                </div>
+                              </div>
                               <div>
                                 <p className="font-medium text-sm">{team.name}</p>
                                 <p className="text-xs text-gray-500">{team.manager}</p>
