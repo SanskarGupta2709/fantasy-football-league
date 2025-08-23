@@ -146,9 +146,29 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset }: 
                   }`}>
                     {index + 1}
                   </div>
-                  <span className="text-sm sm:text-lg shrink-0">{team.logo}</span>
+                  <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                    {team.logo ? (
+                      <img 
+                        src={team.logo} 
+                        alt={`${team.name} logo`}
+                        className="w-8 h-8 object-cover rounded-full border border-gray-200"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 ${team.logo ? 'hidden' : ''}`}>
+                      ⚽
+                    </div>
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm sm:text-base truncate">{team.name}</p>
+                    <div className="flex items-center space-x-1">
+                      <p className={`font-semibold text-sm sm:text-base truncate ${index === 0 ? 'text-yellow-700' : ''}`}>
+                        {team.name}
+                      </p>
+                      {index === 0 && <Trophy className="h-4 w-4 text-yellow-500 shrink-0" />}
+                    </div>
                     <p className="text-xs sm:text-sm text-gray-600 truncate">{team.manager}</p>
                   </div>
                 </div>
