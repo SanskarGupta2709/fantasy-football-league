@@ -87,7 +87,7 @@ const Index = () => {
           />
         );
       case 'leaderboard':
-        return <Leaderboard teams={sortedTeams} />;
+        return <Leaderboard teams={teams} onUpdateTeam={updateTeam} />;
       case 'teams':
         return (
           <TeamsManagement

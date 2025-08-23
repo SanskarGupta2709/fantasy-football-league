@@ -6,8 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Users, Edit, Trash2, User } from "lucide-react";
-import { Team, Player } from "@/utils/storage";
+import { Team, Player } from "@/hooks/useSupabaseLeagueData";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+// Import real football club logos
+import arsenalLogo from "@/assets/logos/arsenal.png";
+import chelseaLogo from "@/assets/logos/chelsea.png";
+import liverpoolLogo from "@/assets/logos/liverpool.png";
+import manchesterUnitedLogo from "@/assets/logos/manchester-united.png";
+import manchesterCityLogo from "@/assets/logos/manchester-city.png";
+import realMadridLogo from "@/assets/logos/real-madrid.png";
+import barcelonaLogo from "@/assets/logos/barcelona.png";
+import bayernLogo from "@/assets/logos/bayern.png";
+import juventusLogo from "@/assets/logos/juventus.png";
 
 interface TeamsManagementProps {
   teams: Team[];
@@ -27,22 +38,42 @@ export const TeamsManagement = ({
   onUpdatePlayer
 }: TeamsManagementProps) => {
   const { toast } = useToast();
+
+  // Real football club logos with fallback emojis
+  const logoOptions = [
+    { name: "Arsenal", logo: arsenalLogo, fallback: '🔴' },
+    { name: "Chelsea", logo: chelseaLogo, fallback: '🔵' },
+    { name: "Liverpool", logo: liverpoolLogo, fallback: '❤️' },
+    { name: "Manchester United", logo: manchesterUnitedLogo, fallback: '👹' },
+    { name: "Manchester City", logo: manchesterCityLogo, fallback: '💙' },
+    { name: "Real Madrid", logo: realMadridLogo, fallback: '👑' },
+    { name: "Barcelona", logo: barcelonaLogo, fallback: '🔴' },
+    { name: "Bayern Munich", logo: bayernLogo, fallback: '🔴' },
+    { name: "Juventus", logo: juventusLogo, fallback: '⚫' },
+    // Fallback emoji options
+    { name: "Custom 1", logo: '⚽', fallback: '⚽' },
+    { name: "Custom 2", logo: '🛡️', fallback: '🛡️' },
+    { name: "Custom 3", logo: '⭐', fallback: '⭐' },
+    { name: "Custom 4", logo: '🔥', fallback: '🔥' },
+    { name: "Custom 5", logo: '⚡', fallback: '⚡' },
+    { name: "Custom 6", logo: '💎', fallback: '💎' },
+    { name: "Custom 7", logo: '🦅', fallback: '🦅' },
+    { name: "Custom 8", logo: '🐺', fallback: '🐺' },
+    { name: "Custom 9", logo: '🦁', fallback: '🦁' },
+    { name: "Custom 10", logo: '🏆', fallback: '🏆' },
+  ];
+
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [newTeam, setNewTeam] = useState({ name: '', manager: '', logo: '⚽' });
+  const [newTeam, setNewTeam] = useState({ name: '', manager: '', logo: logoOptions[0].logo });
   const [newPlayer, setNewPlayer] = useState({ 
     name: '', 
     jerseyNumber: 1, 
-    position: '', 
+    position: '' as 'Forward' | 'Midfielder' | 'Defender' | 'Goalkeeper' | '', 
     goals: 0, 
-    assists: 0 
+    assists: 0,
+    yellowCards: 0,
+    redCards: 0
   });
-
-  // Enhanced logo options with more football-themed badges and shields
-  const logoOptions = [
-    '⚽', '🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⚪', '⚫', '🔶',
-    '🛡️', '⭐', '🔥', '⚡', '💎', '🦅', '🐺', '🦁', '🐯', '🏆',
-    '👑', '⚔️', '🗲', '🌟', '💪', '🎯', '🔱', '🏴', '🚀', '💫'
-  ];
 
   const handleAddTeam = () => {
     if (!newTeam.name || !newTeam.manager) {
@@ -66,7 +97,7 @@ export const TeamsManagement = ({
       points: 0
     });
 
-    setNewTeam({ name: '', manager: '', logo: '⚽' });
+    setNewTeam({ name: '', manager: '', logo: logoOptions[0].logo });
     toast({
       title: "Success",
       description: "Team added successfully!",
@@ -93,8 +124,14 @@ export const TeamsManagement = ({
       return;
     }
 
-    onAddPlayer(teamId, newPlayer);
-    setNewPlayer({ name: '', jerseyNumber: 1, position: '', goals: 0, assists: 0 });
+    // Type-safe player creation
+    const playerData = {
+      ...newPlayer,
+      position: newPlayer.position as 'Forward' | 'Midfielder' | 'Defender' | 'Goalkeeper'
+    };
+
+    onAddPlayer(teamId, playerData);
+    setNewPlayer({ name: '', jerseyNumber: 1, position: '' as any, goals: 0, assists: 0, yellowCards: 0, redCards: 0 });
     toast({
       title: "Success",
       description: "Player added successfully!",
@@ -139,15 +176,29 @@ export const TeamsManagement = ({
                 <SelectTrigger className="bg-white/90 backdrop-blur-sm">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="max-h-48 bg-white/95 backdrop-blur-sm">
-                  <div className="grid grid-cols-6 gap-1 p-2">
-                    {logoOptions.map((logo) => (
+                <SelectContent className="max-h-64 bg-white/95 backdrop-blur-sm">
+                  <div className="grid grid-cols-3 gap-2 p-2">
+                    {logoOptions.map((option, index) => (
                       <SelectItem 
-                        key={logo} 
-                        value={logo}
-                        className="flex items-center justify-center p-2 hover:bg-green-50 cursor-pointer rounded"
+                        key={index} 
+                        value={typeof option.logo === 'string' ? option.logo : option.fallback}
+                        className="flex items-center justify-center p-3 hover:bg-green-50 cursor-pointer rounded"
                       >
-                        <span className="text-2xl hover:scale-110 transition-transform">{logo}</span>
+                        <div className="flex flex-col items-center space-y-1">
+                          {typeof option.logo === 'string' ? (
+                            <span className="text-2xl hover:scale-110 transition-transform">{option.logo}</span>
+                          ) : (
+                            <img 
+                              src={option.logo} 
+                              alt={option.name}
+                              className="w-8 h-8 object-contain hover:scale-110 transition-transform rounded"
+                              onError={() => {
+                                // Show fallback emoji on error
+                              }}
+                            />
+                          )}
+                          <span className="text-xs text-gray-600">{option.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </div>
@@ -168,10 +219,21 @@ export const TeamsManagement = ({
         {teams.map((team) => (
           <Card key={team.id} className="hover:shadow-xl transition-all duration-300 stadium-glow hover:scale-[1.02] bg-white/95 backdrop-blur-sm">
             <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    <span className="text-4xl drop-shadow-sm">{team.logo}</span>
+                    {team.logo.startsWith('http') || team.logo.includes('/') ? (
+                      <img 
+                        src={team.logo} 
+                        alt={team.name}
+                        className="w-12 h-12 object-contain rounded-full"
+                              onError={() => {
+                                // Fallback to emoji if image fails to load
+                              }}
+                      />
+                    ) : (
+                      <span className="text-4xl drop-shadow-sm">{team.logo}</span>
+                    )}
                   </div>
                   <div>
                     <CardTitle className="text-lg font-bold text-gray-800">{team.name}</CardTitle>
@@ -187,22 +249,46 @@ export const TeamsManagement = ({
                   >
                     <Users className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    onClick={() => {
-                      if (confirm('Are you sure you want to delete this team?')) {
-                        onDeleteTeam(team.id);
-                        toast({
-                          title: "Team deleted",
-                          description: `${team.name} has been removed from the league.`,
-                        });
-                      }
-                    }}
-                    className="hover:shadow-lg"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="hover:shadow-lg"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="animate-scale-in">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>🗑️ Remove Team</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove <strong>{team.name}</strong>? This will:
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Delete all team data and players</li>
+                            <li>Remove from league table and matches</li>
+                            <li>Recalculate all statistics</li>
+                          </ul>
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            onDeleteTeam(team.id);
+                            toast({
+                              title: "✅ Team removed successfully",
+                              description: `${team.name} has been removed from the league.`,
+                            });
+                          }}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
+                          Remove Team
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardHeader>
@@ -233,7 +319,18 @@ export const TeamsManagement = ({
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                  <span className="text-3xl">{selectedTeam.logo}</span>
+                  {selectedTeam.logo.startsWith('http') || selectedTeam.logo.includes('/') ? (
+                    <img 
+                      src={selectedTeam.logo} 
+                      alt={selectedTeam.name}
+                      className="w-10 h-10 object-contain rounded-full"
+                      onError={() => {
+                        // Fallback to emoji if image fails to load
+                      }}
+                    />
+                  ) : (
+                    <span className="text-3xl">{selectedTeam.logo}</span>
+                  )}
                 </div>
                 <span className="text-xl font-bold">{selectedTeam.name} - Squad Management</span>
               </DialogTitle>
@@ -272,7 +369,7 @@ export const TeamsManagement = ({
                     </div>
                     <div>
                       <Label>Position</Label>
-                      <Select value={newPlayer.position} onValueChange={(value) => setNewPlayer({ ...newPlayer, position: value })}>
+                      <Select value={newPlayer.position} onValueChange={(value) => setNewPlayer({ ...newPlayer, position: value as 'Forward' | 'Midfielder' | 'Defender' | 'Goalkeeper' })}>
                         <SelectTrigger className="bg-white/90">
                           <SelectValue placeholder="Select position" />
                         </SelectTrigger>

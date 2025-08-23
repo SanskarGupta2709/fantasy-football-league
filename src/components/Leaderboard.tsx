@@ -1,7 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Edit, Save, X } from "lucide-react";
 import { Team } from '@/hooks/useSupabaseLeagueData';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,12 +17,70 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface LeaderboardProps {
   teams: Team[];
+  onUpdateTeam?: (teamId: string, updates: Partial<Team>) => void;
 }
 
-export const Leaderboard = ({ teams }: LeaderboardProps) => {
+interface EditableTeamStats {
+  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+}
+
+export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingStats, setEditingStats] = useState<Record<string, EditableTeamStats>>({});
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
   const firstName = userName.split(' ')[0];
+
+  const enableEditMode = () => {
+    const initialStats: Record<string, EditableTeamStats> = {};
+    teams.forEach(team => {
+      initialStats[team.id] = {
+        points: team.points,
+        goalsFor: team.goalsFor,
+        goalsAgainst: team.goalsAgainst
+      };
+    });
+    setEditingStats(initialStats);
+    setIsEditMode(true);
+  };
+
+  const cancelEditMode = () => {
+    setIsEditMode(false);
+    setEditingStats({});
+  };
+
+  const saveChanges = () => {
+    if (!onUpdateTeam) return;
+    
+    Object.entries(editingStats).forEach(([teamId, stats]) => {
+      const team = teams.find(t => t.id === teamId);
+      if (team) {
+        const goalDifference = stats.goalsFor - stats.goalsAgainst;
+        const oldGD = team.goalsFor - team.goalsAgainst;
+        
+        onUpdateTeam(teamId, {
+          points: stats.points,
+          goalsFor: stats.goalsFor,
+          goalsAgainst: stats.goalsAgainst,
+        });
+      }
+    });
+    
+    setIsEditMode(false);
+    setEditingStats({});
+  };
+
+  const updateTeamStats = (teamId: string, field: keyof EditableTeamStats, value: number) => {
+    setEditingStats(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [field]: Math.max(0, value)
+      }
+    }));
+  };
 
   const sortedTeams = [...teams].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -59,12 +120,47 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Trophy className="h-6 w-6 text-yellow-500" />
-            <span className="break-words">
-              <span className="hidden sm:inline">{userName}'s League Table</span>
-              <span className="sm:hidden">{firstName}'s League Table</span>
-            </span>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Trophy className="h-6 w-6 text-yellow-500" />
+              <span className="break-words">
+                <span className="hidden sm:inline">{userName}'s League Table</span>
+                <span className="sm:hidden">{firstName}'s League Table</span>
+              </span>
+            </div>
+            {onUpdateTeam && (
+              <div className="flex space-x-2">
+                {!isEditMode ? (
+                  <Button 
+                    size="sm" 
+                    onClick={enableEditMode}
+                    className="animate-hover-scale"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Table
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={cancelEditMode}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={saveChanges}
+                      className="animate-hover-scale"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -106,7 +202,21 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
                         
                         <TableCell className="sticky left-16 bg-inherit">
                           <div className="flex items-center space-x-3">
-                            <span className="text-2xl">{team.logo}</span>
+                            {team.logo.startsWith('http') || team.logo.includes('/') ? (
+                              <img 
+                                src={team.logo} 
+                                alt={team.name}
+                                className="w-8 h-8 object-contain rounded"
+                                onError={(e) => {
+                                  const target = e.currentTarget as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const nextElement = target.nextElementSibling as HTMLElement;
+                                  if (nextElement) nextElement.style.display = 'inline';
+                                }}
+                              />
+                            ) : (
+                              <span className="text-2xl">{team.logo}</span>
+                            )}
                             <div>
                               <p className="font-semibold">{team.name}</p>
                               <p className="text-xs text-gray-600">{team.manager}</p>
@@ -131,11 +241,31 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
                         </TableCell>
                         
                         <TableCell className="text-center">
-                          <span className="font-bold text-green-700">{team.goalsFor}</span>
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              value={editingStats[team.id]?.goalsFor ?? team.goalsFor}
+                              onChange={(e) => updateTeamStats(team.id, 'goalsFor', parseInt(e.target.value) || 0)}
+                              className="w-16 text-center"
+                            />
+                          ) : (
+                            <span className="font-bold text-green-700">{team.goalsFor}</span>
+                          )}
                         </TableCell>
                         
                         <TableCell className="text-center">
-                          <span className="font-bold text-red-700">{team.goalsAgainst}</span>
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              value={editingStats[team.id]?.goalsAgainst ?? team.goalsAgainst}
+                              onChange={(e) => updateTeamStats(team.id, 'goalsAgainst', parseInt(e.target.value) || 0)}
+                              className="w-16 text-center"
+                            />
+                          ) : (
+                            <span className="font-bold text-red-700">{team.goalsAgainst}</span>
+                          )}
                         </TableCell>
                         
                         <TableCell className="text-center">
@@ -145,7 +275,17 @@ export const Leaderboard = ({ teams }: LeaderboardProps) => {
                         </TableCell>
                         
                         <TableCell className="text-center">
-                          <span className="font-bold text-xl text-blue-600">{team.points}</span>
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              value={editingStats[team.id]?.points ?? team.points}
+                              onChange={(e) => updateTeamStats(team.id, 'points', parseInt(e.target.value) || 0)}
+                              className="w-16 text-center font-bold"
+                            />
+                          ) : (
+                            <span className="font-bold text-xl text-blue-600">{team.points}</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
