@@ -406,8 +406,8 @@ export const useSupabaseLeagueData = () => {
 
       await fetchTeams();
       toast({
-        title: "Success",
-        description: "Team updated successfully",
+        title: "✅ League table updated successfully!",
+        description: "Team statistics have been updated and table re-sorted.",
       });
     } catch (error) {
       console.error('Error updating team:', error);
@@ -698,8 +698,8 @@ export const useSupabaseLeagueData = () => {
       await fetchTeams();
       await fetchMatches();
       toast({
-        title: "Success",
-        description: "Match updated successfully",
+        title: "✅ Match updated successfully!",
+        description: "Match details and player stats have been updated.",
       });
     } catch (error) {
       console.error('Error updating match:', error);
@@ -988,8 +988,8 @@ export const useSupabaseLeagueData = () => {
       await fetchMatches();
       await fetchFixtures();
       toast({
-        title: "Success",
-        description: "Match deleted successfully",
+        title: "✅ Match deleted successfully!",
+        description: "Match and all related stats have been removed.",
       });
     } catch (error) {
       console.error('Error deleting match:', error);

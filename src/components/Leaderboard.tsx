@@ -24,6 +24,7 @@ interface EditableTeamStats {
   points: number;
   goalsFor: number;
   goalsAgainst: number;
+  matchesPlayed: number;
 }
 
 export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
@@ -39,7 +40,8 @@ export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
       initialStats[team.id] = {
         points: team.points,
         goalsFor: team.goalsFor,
-        goalsAgainst: team.goalsAgainst
+        goalsAgainst: team.goalsAgainst,
+        matchesPlayed: team.matchesPlayed
       };
     });
     setEditingStats(initialStats);
@@ -64,6 +66,7 @@ export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
           points: stats.points,
           goalsFor: stats.goalsFor,
           goalsAgainst: stats.goalsAgainst,
+          matchesPlayed: stats.matchesPlayed,
         });
       }
     });
@@ -202,21 +205,26 @@ export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
                         
                         <TableCell className="sticky left-16 bg-inherit">
                           <div className="flex items-center space-x-3">
-                            {team.logo.startsWith('http') || team.logo.includes('/') ? (
-                              <img 
-                                src={team.logo} 
-                                alt={team.name}
-                                className="w-8 h-8 object-contain rounded"
-                                onError={(e) => {
-                                  const target = e.currentTarget as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  const nextElement = target.nextElementSibling as HTMLElement;
-                                  if (nextElement) nextElement.style.display = 'inline';
-                                }}
-                              />
-                            ) : (
-                              <span className="text-2xl">{team.logo}</span>
-                            )}
+                             {team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http') ? (
+                               <img 
+                                 src={team.logo} 
+                                 alt={team.name}
+                                 className="w-8 h-8 object-contain rounded"
+                                 onError={(e) => {
+                                   const target = e.currentTarget as HTMLImageElement;
+                                   target.style.display = 'none';
+                                   const parent = target.parentElement;
+                                   if (parent) {
+                                     const fallbackSpan = document.createElement('span');
+                                     fallbackSpan.className = 'text-2xl';
+                                     fallbackSpan.textContent = '⚽';
+                                     parent.insertBefore(fallbackSpan, target);
+                                   }
+                                 }}
+                               />
+                             ) : (
+                               <span className="text-2xl">{team.logo}</span>
+                             )}
                             <div>
                               <p className="font-semibold">{team.name}</p>
                               <p className="text-xs text-gray-600">{team.manager}</p>
@@ -225,7 +233,17 @@ export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
                         </TableCell>
                         
                         <TableCell className="text-center">
-                          <span className="font-semibold">{team.matchesPlayed}</span>
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              value={editingStats[team.id]?.matchesPlayed ?? team.matchesPlayed}
+                              onChange={(e) => updateTeamStats(team.id, 'matchesPlayed', parseInt(e.target.value) || 0)}
+                              className="w-16 text-center"
+                            />
+                          ) : (
+                            <span className="font-semibold">{team.matchesPlayed}</span>
+                          )}
                         </TableCell>
                         
                         <TableCell className="text-center">

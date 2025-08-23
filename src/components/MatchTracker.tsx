@@ -159,7 +159,31 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
   };
 
   const getTeamLogo = (teamId: string) => {
-    return teams.find(t => t.id === teamId)?.logo || '⚽';
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return '⚽';
+    
+    // Check if it's an image file
+    if (team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http')) {
+      return (
+        <img 
+          src={team.logo} 
+          alt={team.name}
+          className="w-8 h-8 object-contain rounded"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              const fallbackSpan = document.createElement('span');
+              fallbackSpan.className = 'text-2xl';
+              fallbackSpan.textContent = '⚽';
+              parent.insertBefore(fallbackSpan, target);
+            }
+          }}
+        />
+      );
+    }
+    return team.logo;
   };
 
   // Helper function to get player info by ID
@@ -462,20 +486,32 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center justify-center w-full space-x-8">
                       <div className="text-center flex-1">
-                        <div className="flex items-center justify-center space-x-2 mb-2">
-                          <span className="text-2xl">{getTeamLogo(match.teamAId)}</span>
-                          <span className="font-semibold text-lg">{getTeamName(match.teamAId)}</span>
-                        </div>
+                         <div className="flex items-center justify-center space-x-2 mb-2">
+                           <div className="flex items-center justify-center">
+                             {typeof getTeamLogo(match.teamAId) === 'string' ? (
+                               <span className="text-2xl">{getTeamLogo(match.teamAId)}</span>
+                             ) : (
+                               getTeamLogo(match.teamAId)
+                             )}
+                           </div>
+                           <span className="font-semibold text-lg">{getTeamName(match.teamAId)}</span>
+                         </div>
                         <div className="text-4xl font-bold text-blue-600">{match.teamAScore}</div>
                       </div>
                       
                       <div className="text-2xl font-bold text-gray-400 mx-4">VS</div>
                       
                       <div className="text-center flex-1">
-                        <div className="flex items-center justify-center space-x-2 mb-2">
-                          <span className="font-semibold text-lg">{getTeamName(match.teamBId)}</span>
-                          <span className="text-2xl">{getTeamLogo(match.teamBId)}</span>
-                        </div>
+                         <div className="flex items-center justify-center space-x-2 mb-2">
+                           <span className="font-semibold text-lg">{getTeamName(match.teamBId)}</span>
+                           <div className="flex items-center justify-center">
+                             {typeof getTeamLogo(match.teamBId) === 'string' ? (
+                               <span className="text-2xl">{getTeamLogo(match.teamBId)}</span>
+                             ) : (
+                               getTeamLogo(match.teamBId)
+                             )}
+                           </div>
+                         </div>
                         <div className="text-4xl font-bold text-blue-600">{match.teamBScore}</div>
                       </div>
                     </div>

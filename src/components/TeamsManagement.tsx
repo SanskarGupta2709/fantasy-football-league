@@ -185,18 +185,23 @@ export const TeamsManagement = ({
                         className="flex items-center justify-center p-3 hover:bg-green-50 cursor-pointer rounded"
                       >
                         <div className="flex flex-col items-center space-y-1">
-                          {typeof option.logo === 'string' ? (
-                            <span className="text-2xl hover:scale-110 transition-transform">{option.logo}</span>
-                          ) : (
-                            <img 
-                              src={option.logo} 
-                              alt={option.name}
-                              className="w-8 h-8 object-contain hover:scale-110 transition-transform rounded"
-                              onError={() => {
-                                // Show fallback emoji on error
-                              }}
-                            />
-                          )}
+                           {option.logo.startsWith('http') || option.logo.includes('.png') || option.logo.includes('.jpg') ? (
+                             <img 
+                               src={option.logo} 
+                               alt={option.name}
+                               className="w-8 h-8 object-contain hover:scale-110 transition-transform rounded"
+                               onError={(e) => {
+                                 const target = e.currentTarget as HTMLImageElement;
+                                 target.style.display = 'none';
+                                 const parent = target.parentElement;
+                                 if (parent) {
+                                   parent.innerHTML = `<span class="text-2xl">${option.fallback}</span>`;
+                                 }
+                               }}
+                             />
+                           ) : (
+                             <span className="text-2xl hover:scale-110 transition-transform">{option.logo}</span>
+                           )}
                           <span className="text-xs text-gray-600">{option.name}</span>
                         </div>
                       </SelectItem>
@@ -222,18 +227,23 @@ export const TeamsManagement = ({
                 <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    {team.logo.startsWith('http') || team.logo.includes('/') ? (
-                      <img 
-                        src={team.logo} 
-                        alt={team.name}
-                        className="w-12 h-12 object-contain rounded-full"
-                              onError={() => {
-                                // Fallback to emoji if image fails to load
-                              }}
-                      />
-                    ) : (
-                      <span className="text-4xl drop-shadow-sm">{team.logo}</span>
-                    )}
+                     {team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http') ? (
+                       <img 
+                         src={team.logo} 
+                         alt={team.name}
+                         className="w-12 h-12 object-contain rounded-full"
+                         onError={(e) => {
+                           const target = e.currentTarget as HTMLImageElement;
+                           target.style.display = 'none';
+                           const parent = target.parentElement;
+                           if (parent) {
+                             parent.innerHTML = `<span class="text-4xl">⚽</span>`;
+                           }
+                         }}
+                       />
+                     ) : (
+                       <span className="text-4xl drop-shadow-sm">{team.logo}</span>
+                     )}
                   </div>
                   <div>
                     <CardTitle className="text-lg font-bold text-gray-800">{team.name}</CardTitle>
@@ -319,18 +329,23 @@ export const TeamsManagement = ({
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                  {selectedTeam.logo.startsWith('http') || selectedTeam.logo.includes('/') ? (
-                    <img 
-                      src={selectedTeam.logo} 
-                      alt={selectedTeam.name}
-                      className="w-10 h-10 object-contain rounded-full"
-                      onError={() => {
-                        // Fallback to emoji if image fails to load
-                      }}
-                    />
-                  ) : (
-                    <span className="text-3xl">{selectedTeam.logo}</span>
-                  )}
+                   {selectedTeam.logo.includes('.png') || selectedTeam.logo.includes('.jpg') || selectedTeam.logo.startsWith('http') ? (
+                     <img 
+                       src={selectedTeam.logo} 
+                       alt={selectedTeam.name}
+                       className="w-10 h-10 object-contain rounded-full"
+                       onError={(e) => {
+                         const target = e.currentTarget as HTMLImageElement;
+                         target.style.display = 'none';
+                         const parent = target.parentElement;
+                         if (parent) {
+                           parent.innerHTML = `<span class="text-3xl">⚽</span>`;
+                         }
+                       }}
+                     />
+                   ) : (
+                     <span className="text-3xl">{selectedTeam.logo}</span>
+                   )}
                 </div>
                 <span className="text-xl font-bold">{selectedTeam.name} - Squad Management</span>
               </DialogTitle>
