@@ -10,6 +10,8 @@ import { Plus, Search, Edit, Trash2, User } from "lucide-react";
 import { Team, Player } from "@/hooks/useSupabaseLeagueData";
 import { useToast } from "@/hooks/use-toast";
 import { EditPlayerModal } from "./EditPlayerModal";
+import { TeamLogo } from "./ui/team-logo";
+import { getClubLogo } from "@/utils/footballClubs";
 
 interface PlayerManagementProps {
   teams: Team[];
@@ -179,7 +181,7 @@ export const PlayerManagement = ({
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       <div className="flex items-center space-x-2">
-                        <span>{team.logo}</span>
+                        <TeamLogo logo={team.logo} teamName={team.name} size="sm" />
                         <span>{team.name}</span>
                       </div>
                     </SelectItem>
@@ -265,7 +267,7 @@ export const PlayerManagement = ({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <span>{player.teamLogo}</span>
+                        <TeamLogo logo={player.teamLogo} teamName={player.teamName} size="md" showTooltip />
                         <span>{player.teamName}</span>
                       </div>
                     </TableCell>

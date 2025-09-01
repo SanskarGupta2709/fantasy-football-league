@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Edit } from 'lucide-react';
 import { Team, Bracket } from '@/hooks/useSupabaseLeagueData';
+import { TeamLogo } from "./ui/team-logo";
 
 interface PlayoffBracketProps {
   teams: Team[];
@@ -125,22 +126,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                    {match.teamA.logo ? (
-                      <img 
-                        src={match.teamA.logo} 
-                        alt={`${match.teamA.name} logo`}
-                        className="w-6 h-6 object-cover rounded-full border border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs ${match.teamA.logo ? 'hidden' : ''}`}>
-                      ⚽
-                    </div>
-                  </div>
+                  <TeamLogo logo={match.teamA.logo} teamName={match.teamA.name} size="md" showTooltip />
                   <span className={`font-medium truncate ${match.winner?.id === match.teamA.id ? 'text-green-700 font-bold' : ''}`}>
                     {match.teamA.name}
                   </span>
@@ -149,22 +135,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                    {match.teamB.logo ? (
-                      <img 
-                        src={match.teamB.logo} 
-                        alt={`${match.teamB.name} logo`}
-                        className="w-6 h-6 object-cover rounded-full border border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs ${match.teamB.logo ? 'hidden' : ''}`}>
-                      ⚽
-                    </div>
-                  </div>
+                  <TeamLogo logo={match.teamB.logo} teamName={match.teamB.name} size="md" showTooltip />
                   <span className={`font-medium truncate ${match.winner?.id === match.teamB.id ? 'text-green-700 font-bold' : ''}`}>
                     {match.teamB.name}
                   </span>
@@ -180,20 +151,10 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({
               ) : (
                 <div className="flex justify-between items-center mt-2">
                   {match.winner && (
-                    <Badge className="bg-green-100 text-green-800 flex items-center space-x-1">
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        {match.winner.logo ? (
-                          <img 
-                            src={match.winner.logo} 
-                            alt={`${match.winner.name} logo`}
-                            className="w-4 h-4 object-cover rounded-full"
-                          />
-                        ) : (
-                          <span className="text-xs">🏆</span>
-                        )}
-                      </div>
-                      <span>Winner: {match.winner.name}</span>
-                    </Badge>
+                  <Badge className="bg-green-100 text-green-800 flex items-center space-x-1">
+                    <TeamLogo logo={match.winner.logo} teamName={match.winner.name} size="sm" />
+                    <span>Winner: {match.winner.name}</span>
+                  </Badge>
                   )}
                   <Button
                     size="sm"
@@ -265,17 +226,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({
                   <div className="relative">
                     <Trophy className="h-12 w-12 mx-auto mb-2 text-yellow-600" />
                     <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-8 flex items-center justify-center">
-                      {bracketData.final.champion.logo ? (
-                        <img 
-                          src={bracketData.final.champion.logo} 
-                          alt={`${bracketData.final.champion.name} logo`}
-                          className="w-6 h-6 object-cover rounded-full border border-yellow-400"
-                        />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-yellow-800 text-xs font-bold">
-                          🏆
-                        </div>
-                      )}
+                      <TeamLogo logo={bracketData.final.champion.logo} teamName={bracketData.final.champion.name} size="md" />
                     </div>
                   </div>
                   <h5 className="font-bold text-yellow-800">CHAMPION</h5>

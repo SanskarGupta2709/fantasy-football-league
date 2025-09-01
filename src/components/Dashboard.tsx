@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Users, Calendar, Target, Award, RotateCcw } from "lucide-react";
 import { Team, Match, Player } from "@/utils/storage";
 import { useAuth } from '@/contexts/AuthContext';
+import { TeamLogo } from "./ui/team-logo";
 
 interface DashboardProps {
   teams: Team[];
@@ -147,20 +148,7 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset }: 
                     {index + 1}
                   </div>
                   <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                    {team.logo ? (
-                      <img 
-                        src={team.logo} 
-                        alt={`${team.name} logo`}
-                        className="w-8 h-8 object-cover rounded-full border border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 ${team.logo ? 'hidden' : ''}`}>
-                      ⚽
-                    </div>
+                    <TeamLogo logo={team.logo} teamName={team.name} size="lg" showTooltip />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center space-x-1">

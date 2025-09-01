@@ -9,6 +9,8 @@ import { Plus, Users, Edit, Trash2, User } from "lucide-react";
 import { Team, Player } from "@/hooks/useSupabaseLeagueData";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { getClubLogo, getClubOptions } from "@/utils/footballClubs";
+import { TeamLogo } from "./ui/team-logo";
 // Import real football club logos
 import arsenalLogo from "@/assets/logos/arsenal.png";
 import chelseaLogo from "@/assets/logos/chelsea.png";
@@ -127,8 +129,13 @@ export const TeamsManagement = ({
       return;
     }
 
+    // Auto-assign real club logo if available (prioritize auto-assignment)
+    const autoLogo = getClubLogo(newTeam.name);
+    const finalLogo = autoLogo || newTeam.logo || '⚽';
+
     onAddTeam({
       ...newTeam,
+      logo: finalLogo,
       players: [],
       matchesPlayed: 0,
       wins: 0,
@@ -139,11 +146,20 @@ export const TeamsManagement = ({
       points: 0
     });
 
+    // Show success message with auto-assignment info
+    if (autoLogo) {
+      toast({
+        title: "✅ Team Added Successfully!",
+        description: `Real ${newTeam.name} logo automatically assigned. You can change it anytime.`,
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Team added successfully!",
+      });
+    }
+
     setNewTeam({ name: '', manager: '', logo: logoOptions[0].logo });
-    toast({
-      title: "Success",
-      description: "Team added successfully!",
-    });
   };
 
   const handleAddPlayer = (teamId: string) => {
@@ -339,25 +355,7 @@ export const TeamsManagement = ({
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                     {team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http') ? (
-                       <img 
-                         src={team.logo} 
-                         alt={team.name}
-                         className="w-12 h-12 object-contain rounded-full"
-                         onError={(e) => {
-                           const target = e.currentTarget as HTMLImageElement;
-                           target.style.display = 'none';
-                           const parent = target.parentElement;
-                           if (parent) {
-                             parent.innerHTML = `<span class="text-4xl">⚽</span>`;
-                           }
-                         }}
-                       />
-                     ) : (
-                       <span className="text-4xl drop-shadow-sm">{team.logo}</span>
-                     )}
-                  </div>
+                  <TeamLogo logo={team.logo} teamName={team.name} size="xl" showTooltip />
                   <div>
                     <CardTitle className="text-lg font-bold text-gray-800">{team.name}</CardTitle>
                     <p className="text-sm text-gray-600 font-medium">Manager: {team.manager}</p>

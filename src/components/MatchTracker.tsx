@@ -9,6 +9,7 @@ import { Calendar, Plus, Trash2, Edit } from 'lucide-react';
 import { Team, Match, GoalScorer } from '@/hooks/useSupabaseLeagueData';
 import { EditMatchModal } from "./EditMatchModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { TeamLogo } from "./ui/team-logo";
 
 interface MatchTrackerProps {
   teams: Team[];
@@ -160,30 +161,9 @@ export const MatchTracker: React.FC<MatchTrackerProps> = ({ teams, matches, onAd
 
   const getTeamLogo = (teamId: string) => {
     const team = teams.find(t => t.id === teamId);
-    if (!team) return '⚽';
+    if (!team) return <span className="text-2xl">⚽</span>;
     
-    // Check if it's an image file
-    if (team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http')) {
-      return (
-        <img 
-          src={team.logo} 
-          alt={team.name}
-          className="w-8 h-8 object-contain rounded"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            target.style.display = 'none';
-            const parent = target.parentElement;
-            if (parent) {
-              const fallbackSpan = document.createElement('span');
-              fallbackSpan.className = 'text-2xl';
-              fallbackSpan.textContent = '⚽';
-              parent.insertBefore(fallbackSpan, target);
-            }
-          }}
-        />
-      );
-    }
-    return team.logo;
+    return <TeamLogo logo={team.logo} teamName={team.name} size="lg" showTooltip />;
   };
 
   // Helper function to get player info by ID

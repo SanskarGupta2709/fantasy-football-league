@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from '@/contexts/AuthContext';
+import { TeamLogo } from "./ui/team-logo";
 
 interface LeaderboardProps {
   teams: Team[];
@@ -205,26 +206,7 @@ export const Leaderboard = ({ teams, onUpdateTeam }: LeaderboardProps) => {
                         
                         <TableCell className="sticky left-16 bg-inherit">
                           <div className="flex items-center space-x-3">
-                             {team.logo.includes('.png') || team.logo.includes('.jpg') || team.logo.startsWith('http') ? (
-                               <img 
-                                 src={team.logo} 
-                                 alt={team.name}
-                                 className="w-8 h-8 object-contain rounded"
-                                 onError={(e) => {
-                                   const target = e.currentTarget as HTMLImageElement;
-                                   target.style.display = 'none';
-                                   const parent = target.parentElement;
-                                   if (parent) {
-                                     const fallbackSpan = document.createElement('span');
-                                     fallbackSpan.className = 'text-2xl';
-                                     fallbackSpan.textContent = '⚽';
-                                     parent.insertBefore(fallbackSpan, target);
-                                   }
-                                 }}
-                               />
-                             ) : (
-                               <span className="text-2xl">{team.logo}</span>
-                             )}
+                            <TeamLogo logo={team.logo} teamName={team.name} size="lg" showTooltip />
                             <div>
                               <p className="font-semibold">{team.name}</p>
                               <p className="text-xs text-gray-600">{team.manager}</p>
