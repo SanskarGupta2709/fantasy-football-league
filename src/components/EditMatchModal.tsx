@@ -200,7 +200,22 @@ export const EditMatchModal: React.FC<EditMatchModalProps> = ({
                   {teams.map(team => (
                     <SelectItem key={team.id} value={team.id} disabled={team.id === formData.teamBId}>
                       <div className="flex items-center space-x-2">
-                        <span>{team.logo}</span>
+                        <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                          {team.logo ? (
+                            <img 
+                              src={team.logo} 
+                              alt={`${team.name} logo`}
+                              className="w-6 h-6 object-cover rounded-full border border-gray-200"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs ${team.logo ? 'hidden' : ''}`}>
+                            ⚽
+                          </div>
+                        </div>
                         <span>{team.name}</span>
                       </div>
                     </SelectItem>
@@ -221,7 +236,22 @@ export const EditMatchModal: React.FC<EditMatchModalProps> = ({
                   {teams.filter(t => t.id !== formData.teamAId).map(team => (
                     <SelectItem key={team.id} value={team.id}>
                       <div className="flex items-center space-x-2">
-                        <span>{team.logo}</span>
+                        <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                          {team.logo ? (
+                            <img 
+                              src={team.logo} 
+                              alt={`${team.name} logo`}
+                              className="w-6 h-6 object-cover rounded-full border border-gray-200"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs ${team.logo ? 'hidden' : ''}`}>
+                            ⚽
+                          </div>
+                        </div>
                         <span>{team.name}</span>
                       </div>
                     </SelectItem>
