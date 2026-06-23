@@ -131,6 +131,8 @@ const Index = () => {
           onDeleteMatch={deleteMatch}
         />
         );
+      case 'news':
+        return <FootballNews teams={teams} />;
       default:
         return (
           <Dashboard 
