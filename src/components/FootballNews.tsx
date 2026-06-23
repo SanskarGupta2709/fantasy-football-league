@@ -104,44 +104,6 @@ export const FootballNews: React.FC<FootballNewsProps> = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [tick, setTick] = useState(0);
 
-  const fetchNews = useCallback(async (cat: string, q: string, silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const params = new URLSearchParams({ category: cat, pageSize: '40' });
-      if (q) params.set('search', q);
-      const { data, error } = await supabase.functions.invoke('football-news', {
-        method: 'GET',
-        // @ts-ignore - supabase-js supports query for GET via headers fallback
-      });
-      // supabase.functions.invoke doesn't easily pass query strings; fall back to fetch
-      let result: any = data;
-      if (error || !data) {
-        const url = `https://sselpjbwuykyfjitahmi.supabase.co/functions/v1/football-news?${params.toString()}`;
-        const resp = await fetch(url, {
-          headers: {
-            apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZWxwamJ3dXlreWZqaXRhaG1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMTQwNjIsImV4cCI6MjA2NTg5MDA2Mn0.vSi2IkDRgl2OduPw-aaKowU1YKMvrZLHi2i8N0ME6bw',
-          },
-        });
-        result = await resp.json();
-        if (!resp.ok) throw new Error(result?.error || 'Failed to fetch news');
-      }
-      setArticles(result.articles || []);
-      setLastUpdated(new Date());
-      if (!silent) {
-        toast({ title: '⚽ News updated', description: `${result.articles?.length || 0} articles loaded` });
-      }
-    } catch (e: any) {
-      toast({
-        title: 'Could not load news',
-        description: e.message || 'Check your NewsAPI key',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  // Always use direct fetch with query string (simpler)
   const fetchNewsDirect = useCallback(async (cat: string, q: string, silent = false) => {
     if (!silent) setLoading(true);
     try {
