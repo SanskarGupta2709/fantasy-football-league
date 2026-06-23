@@ -17,10 +17,10 @@ import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw } from 'lucide-react';
 
-const Index = () => {
+const Index = ({ initialTab = 'dashboard' }: { initialTab?: string } = {}) => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const {
     teams,
     matches,
@@ -85,6 +85,7 @@ const Index = () => {
             topScorers={topScorers}
             sortedTeams={sortedTeams}
             onReset={handleReset}
+            onNavigate={setActiveTab}
           />
         );
       case 'leaderboard':

@@ -5,6 +5,7 @@ import { Trophy, Users, Calendar, Target, Award, RotateCcw } from "lucide-react"
 import { Team, Match, Player } from "@/utils/storage";
 import { useAuth } from '@/contexts/AuthContext';
 import { TeamLogo } from "./ui/team-logo";
+import { DashboardNewsPreview } from "./DashboardNewsPreview";
 
 interface DashboardProps {
   teams: Team[];
@@ -12,9 +13,10 @@ interface DashboardProps {
   topScorers: Array<Player & { teamName: string }>;
   sortedTeams: Team[];
   onReset: () => void;
+  onNavigate?: (tab: string) => void;
 }
 
-export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset }: DashboardProps) => {
+export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset, onNavigate }: DashboardProps) => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Manager';
   const firstName = userName.split(' ')[0];
@@ -266,6 +268,9 @@ export const Dashboard = ({ teams, matches, topScorers, sortedTeams, onReset }: 
           </CardContent>
         </Card>
       </div>
+
+      {/* Football News Preview */}
+      <DashboardNewsPreview onViewMore={() => onNavigate?.('news')} />
     </div>
   );
 };

@@ -68,7 +68,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                     className="flex items-center space-x-2 whitespace-nowrap"
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden xl:inline">{tab.label}</span>
+                    <span className="hidden lg:inline">{tab.label}</span>
                   </Button>
                 );
               })}
