@@ -7,11 +7,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TeamLogo } from '@/components/ui/team-logo';
 import { REAL_FOOTBALL_CLUBS, getClubLogo } from '@/utils/footballClubs';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
-  RefreshCw, Newspaper, ArrowRightLeft, Mic, HeartPulse, CalendarDays,
-  Search, Flame, Trophy, ExternalLink, Sparkles, Star, Timer, Zap
+  RefreshCw, ArrowRightLeft, Mic, HeartPulse, CalendarDays,
+  Search, Flame, ExternalLink, Sparkles, Star, Timer, Zap
 } from 'lucide-react';
 
 interface Article {
