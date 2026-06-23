@@ -85,6 +85,7 @@ const Index = () => {
             topScorers={topScorers}
             sortedTeams={sortedTeams}
             onReset={handleReset}
+            onNavigate={setActiveTab}
           />
         );
       case 'leaderboard':
