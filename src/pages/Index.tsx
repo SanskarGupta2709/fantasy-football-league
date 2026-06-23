@@ -12,6 +12,7 @@ import { MatchTracker } from '@/components/MatchTracker';
 import { Fixtures } from '@/components/Fixtures';
 import { PlayoffBracket } from '@/components/PlayoffBracket';
 import { TournamentMode } from '@/components/TournamentMode';
+import { FootballNews } from '@/components/FootballNews';
 import { useSupabaseLeagueData } from '@/hooks/useSupabaseLeagueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw } from 'lucide-react';
@@ -130,6 +131,8 @@ const Index = () => {
           onDeleteMatch={deleteMatch}
         />
         );
+      case 'news':
+        return <FootballNews teams={teams} />;
       default:
         return (
           <Dashboard 
