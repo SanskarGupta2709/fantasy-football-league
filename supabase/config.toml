@@ -1,1 +1,4 @@
 project_id = "sselpjbwuykyfjitahmi"
+
+[functions.football-news]
+verify_jwt = false
