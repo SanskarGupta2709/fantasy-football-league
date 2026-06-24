@@ -8,6 +8,7 @@ import { Trophy, Shield, ArrowRight } from 'lucide-react';
 const Hub = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Clear any previously chosen experience so the picker shows on every login
