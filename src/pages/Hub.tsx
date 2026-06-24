@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import { Trophy, Shield, ArrowRight } from 'lucide-react';
 const Hub = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Clear any previously chosen experience so the picker shows on every login
@@ -45,6 +46,11 @@ const Hub = () => {
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute inset-y-0 left-1/2 w-px bg-white" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-white" />
+      </div>
+
+      {/* Debug banner — temporary */}
+      <div className="relative bg-yellow-400 text-black text-center text-xs sm:text-sm font-mono py-1 px-2">
+        Current Route: {location.pathname}
       </div>
 
       <div className="relative container mx-auto px-4 py-10 md:py-16">
