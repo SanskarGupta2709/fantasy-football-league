@@ -11,6 +11,7 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   // Extract user's display name from Google auth
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Friend';
