@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table, Newspaper } from 'lucide-react';
+import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table, Newspaper, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
