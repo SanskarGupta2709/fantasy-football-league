@@ -83,6 +83,15 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               <span className="hidden sm:block truncate">Hi, {userName}! 👋</span>
             </div>
             <Button
+              onClick={() => navigate('/premier-league')}
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white"
+              size="sm"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden md:inline">Switch to Premier League Hub</span>
+              <span className="md:hidden">PL Hub</span>
+            </Button>
+            <Button
               variant="outline"
               onClick={() => signOut()}
               className="flex items-center space-x-2"
