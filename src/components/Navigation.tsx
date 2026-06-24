@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table, Newspaper } from 'lucide-react';
+import { BarChart3, Users, UserPlus, Calendar, Trophy, Target, LogOut, Zap, Table, Newspaper, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -10,6 +11,7 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   // Extract user's display name from Google auth
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Friend';
@@ -80,6 +82,15 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               <span className="truncate block sm:hidden">Hi, {firstName}! 👋</span>
               <span className="hidden sm:block truncate">Hi, {userName}! 👋</span>
             </div>
+            <Button
+              onClick={() => navigate('/premier-league')}
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white"
+              size="sm"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden md:inline">Switch to Premier League Hub</span>
+              <span className="md:hidden">PL Hub</span>
+            </Button>
             <Button
               variant="outline"
               onClick={() => signOut()}
