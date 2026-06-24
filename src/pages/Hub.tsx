@@ -48,6 +48,11 @@ const Hub = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-white" />
       </div>
 
+      {/* Debug banner — temporary */}
+      <div className="relative bg-yellow-400 text-black text-center text-xs sm:text-sm font-mono py-1 px-2">
+        Current Route: {location.pathname}
+      </div>
+
       <div className="relative container mx-auto px-4 py-10 md:py-16">
         <div className="text-center mb-10 md:mb-14">
           <div className="inline-block text-6xl mb-4 animate-bounce" style={{ filter: 'drop-shadow(0 0 20px rgba(34,197,94,0.7))' }}>⚽</div>
