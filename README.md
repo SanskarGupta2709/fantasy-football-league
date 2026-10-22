@@ -152,4 +152,4 @@ No license has been specified yet. Unless a license is added to this repository,
 
 ## 📸 Application Preview
 
-![Football Geek Dashboard](screenshots/dashboard.png)
+![Football Geek Dashboard](dashboard.png)
