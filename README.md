@@ -1,73 +1,151 @@
-# Welcome to your Lovable project
+# ⚽ Football Geek — Fantasy Football League Companion
 
-## Project info
+A web-based football league management platform designed to make organizing tournaments, managing teams, tracking match results, and monitoring player performance easier.
 
-**URL**: https://lovable.dev/projects/72e62b6b-c0c0-4918-9c07-358e1a4a83d5
+🌐 **Live Demo:** https://footballgeek.lovable.app/
 
-## How can I edit this code?
+## 📌 Overview
 
-There are several ways of editing your application.
+Football Geek is an interactive web application built for football enthusiasts who want to manage their own leagues and tournaments in one place.
 
-**Use Lovable**
+The application brings together team and player management, match tracking, league standings, player statistics, and tournament fixtures in a unified interface. It also integrates Google authentication and Supabase for backend services.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/72e62b6b-c0c0-4918-9c07-358e1a4a83d5) and start prompting.
+## ✨ Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Team Management** — Manage football teams and their details.
+- **Player Management** — Maintain player information and statistics.
+- **Match Management** — Log match results and record goals and assists.
+- **League Standings** — Track team performance through league tables and goal statistics.
+- **Player Leaderboards** — View top scorers and assist leaders.
+- **Tournament Management** — Organize group stages, fixtures, and playoff rounds.
+- **Authentication** — Sign in using Google and maintain authenticated sessions.
+- **Persistent Data** — Use Supabase-backed services to store and retrieve application data.
 
-**Use your preferred IDE**
+*Features listed above describe the intended and tested functionality of the current project. Availability may depend on the deployed version and configuration.*
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Technology | Purpose |
+|---|---|
+| React | User interface |
+| TypeScript | Type-safe application development |
+| Vite | Development server and build tooling |
+| Tailwind CSS | Styling and responsive layouts |
+| shadcn/ui | UI components |
+| Supabase | Backend services, database, and authentication |
+| Lovable | AI-assisted development and deployment |
 
-Follow these steps:
+## 🚀 Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Install the following before running the project locally:
 
-# Step 3: Install the necessary dependencies.
-npm i
+- [Node.js](https://nodejs.org/) — preferably a version compatible with the project
+- npm
+- Git
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/SanskarGupta2709/gridiron-glory-companion.git
+cd gridiron-glory-companion
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Check the project's source code and existing environment example files to determine which variables are required.
+
+If the application uses Vite environment variables, create a local `.env` file with the required values. For example:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+```
+
+**Important:** These variable names are examples. Use the exact names expected by the current codebase. Never put Supabase service-role keys, private API keys, or other secrets in frontend environment variables or commit them to GitHub.
+
+### 4. Start the development server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Vite will display a local development URL in the terminal, typically `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 5. Create a production build
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To preview the production build locally, if supported by the project scripts:
 
-## What technologies are used for this project?
+```bash
+npm run preview
+```
 
-This project is built with:
+## 🔐 Authentication and Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The application uses Supabase for authentication and backend integration.
 
-## How can I deploy this project?
+For local development or a new deployment:
 
-Simply open [Lovable](https://lovable.dev/projects/72e62b6b-c0c0-4918-9c07-358e1a4a83d5) and click on Share -> Publish.
+1. Configure the appropriate Supabase project URL and publishable key.
+2. Enable the required authentication provider in Supabase.
+3. Configure the appropriate redirect URLs for your environment.
+4. Review Row Level Security (RLS) policies for database tables.
+5. Ensure private credentials are never exposed in client-side code.
 
-## Can I connect a custom domain to my Lovable project?
+The existing hosted application uses its configured Supabase backend. Local development may require access to the same backend or a separately configured development project.
 
-Yes, you can!
+## 🌍 Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The current application is published through Lovable.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+**Live application:** https://footballgeek.lovable.app/
+
+To deploy updates through Lovable:
+
+1. Open the project in Lovable.
+2. Make and review the required changes.
+3. Use the Publish workflow to deploy the latest version.
+4. Test the published application, including authentication and core functionality.
+
+For a custom domain, configure it through the project's domain settings in Lovable.
+
+## 🔄 Development Workflow
+
+This project is connected to GitHub for source control.
+
+- Changes made through Lovable can sync to the connected GitHub repository.
+- Changes pushed from a local development environment can sync back to Lovable.
+- Local development can be performed using any compatible IDE.
+
+Always review changes before committing, and keep credentials and local environment files out of version control.
+
+## 🔮 Future Improvements
+
+Potential areas for further development include:
+
+- Enhanced player and team analytics
+- Improved mobile responsiveness
+- More detailed tournament statistics
+- Expanded league customization
+- Additional testing and performance improvements
+
+## 👨‍💻 Author
+
+**Sanskar Gupta**
+
+Computer Engineering Student | Web Development | Football & Technology
+
+## 📄 License
+
+No license has been specified yet. Unless a license is added to this repository, the source code remains under the default copyright rules. Contact the author for permission to reuse or redistribute it.
