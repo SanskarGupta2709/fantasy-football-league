@@ -149,3 +149,7 @@ Computer Engineering Student | Web Development | Football & Technology
 ## 📄 License
 
 No license has been specified yet. Unless a license is added to this repository, the source code remains under the default copyright rules. Contact the author for permission to reuse or redistribute it.
+
+## 📸 Application Preview
+
+![Football Geek Dashboard](screenshots/dashboard.png)
