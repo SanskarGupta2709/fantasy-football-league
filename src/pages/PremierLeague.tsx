@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +12,150 @@ import {
   LayoutDashboard, CalendarDays, ListChecks, Shield, Users,
   ArrowLeftRight, BarChart3, HeartPulse, LogOut, Trophy, RefreshCw,
 } from 'lucide-react';
-import {
-  PL_TEAMS, PL_FIXTURES, MATCH_EVENTS, computeStandings, teamById,
-} from '@/data/premierLeagueMock';
+import { PL_TEAMS } from '@/data/premierLeagueMock';
+import { supabase } from '@/integrations/supabase/client';
 
 type Section =
   | 'overview' | 'fixtures' | 'results' | 'clubs'
   | 'players' | 'transfers' | 'statistics' | 'injuries';
+
+type PLStandingRow = {
+  position: number;
+  team: {
+    id: number;
+    name: string;
+    shortName?: string;
+    crest?: string;
+  };
+  playedGames: number;
+  won: number;
+  draw: number;
+  lost: number;
+  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+};
+
+type PLStandingsResponse = {
+  data: {
+    season: {
+      startDate: string;
+      endDate: string;
+      currentMatchday?: number | null;
+    };
+    standings: {
+      type: string;
+      table: PLStandingRow[];
+    }[];
+  };
+};
+
+type PLMatch = {
+  id: number;
+  utcDate: string;
+  status: string;
+  matchday?: number | null;
+  homeTeam: {
+    id: number;
+    name: string;
+    shortName?: string;
+    crest?: string;
+  };
+  awayTeam: {
+    id: number;
+    name: string;
+    shortName?: string;
+    crest?: string;
+  };
+  score: {
+    fullTime: {
+      home: number | null;
+      away: number | null;
+    };
+  };
+  competition?: {
+    name?: string;
+  };
+  venue?: string | null;
+};
+
+type PLMatchesResponse = {
+  data: {
+    matches: PLMatch[];
+  };
+};
+
+
+type PLScorer = {
+  player: {
+    id: number;
+    name: string;
+    nationality?: string | null;
+    shirtNumber?: number | null;
+  };
+  team: {
+    id: number;
+    name: string;
+    shortName?: string;
+    tla?: string;
+    crest?: string;
+  };
+  playedMatches: number;
+  goals: number;
+  assists: number | null;
+  penalties: number | null;
+};
+
+type PLScorersResponse = {
+  data: {
+    count?: number;
+    season?: {
+      startDate?: string;
+      endDate?: string;
+      currentMatchday?: number | null;
+    };
+    scorers: PLScorer[];
+  };
+};
+
+async function fetchPLScorers(): Promise<PLScorer[]> {
+  const { data, error } = await supabase.functions.invoke(
+    'premier-league?resource=scorers',
+    { method: 'GET' }
+  );
+
+  if (error) {
+    throw new Error(error.message || 'Unable to fetch Premier League statistics.');
+  }
+
+  const response = data as PLScorersResponse | null;
+  if (!Array.isArray(response?.data?.scorers)) {
+    throw new Error('The API returned an unexpected scorers response.');
+  }
+
+  return response.data.scorers;
+}
+
+async function fetchPLMatches(
+  resource: 'fixtures' | 'results'
+): Promise<PLMatch[]> {
+  const { data, error } = await supabase.functions.invoke(
+    `premier-league?resource=${resource}`,
+    { method: 'GET' }
+  );
+
+  if (error) {
+    throw new Error(error.message || `Unable to fetch ${resource}.`);
+  }
+
+  const response = data as PLMatchesResponse | null;
+  if (!Array.isArray(response?.data?.matches)) {
+    throw new Error('The API returned an unexpected matches response.');
+  }
+
+  return response.data.matches;
+}
 
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
   { id: 'overview',   label: 'Overview',   icon: LayoutDashboard, description: 'Premier League standings' },
@@ -40,27 +177,80 @@ const TeamLogo = ({ src, alt, className = 'h-6 w-6' }: { src: string; alt: strin
   />
 );
 
-const FormPill = ({ r }: { r: 'W' | 'D' | 'L' }) => (
-  <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${
-    r === 'W' ? 'bg-green-500 text-white' :
-    r === 'D' ? 'bg-yellow-500 text-black' :
-    'bg-red-500 text-white'
-  }`}>{r}</span>
-);
 
-const formatKickoff = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, {
-    weekday: 'short', day: 'numeric', month: 'short',
-    hour: '2-digit', minute: '2-digit',
-  });
+const Standings = ({ refreshKey }: { refreshKey: number }) => {
+  const [rows, setRows] = useState<PLStandingRow[]>([]);
+  const [season, setSeason] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-const Standings = () => {
-  const rows = useMemo(() => computeStandings(), []);
+  const fetchStandings = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'premier-league?resource=standings',
+        { method: 'GET' }
+      );
+      if (error) throw new Error(error.message || 'Unable to fetch standings.');
+
+      const response = data as PLStandingsResponse | null;
+      if (
+        !response?.data?.standings ||
+        !response.data.season?.startDate ||
+        !response.data.season?.endDate
+      ) {
+        throw new Error('The API response did not contain valid standings.');
+      }
+
+      const totalTable = response.data.standings.find(
+        (standing) => standing.type === 'TOTAL'
+      );
+      if (!totalTable || !Array.isArray(totalTable.table)) {
+        throw new Error('The API returned no league table.');
+      }
+
+      setRows(totalTable.table);
+      setSeason(
+        `${response.data.season.startDate.slice(0, 4)}/${response.data.season.endDate.slice(2, 4)}`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load standings.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchStandings();
+  }, [refreshKey]);
+
+  if (loading) {
+    return (
+      <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+        <CardContent className="p-6">Loading live Premier League standings...</CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-red-400/30 bg-purple-950/40 text-white">
+        <CardContent className="space-y-3 p-6">
+          <p>Unable to load the league table: {error}</p>
+          <Button onClick={fetchStandings}>Try Again</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-purple-400/30 bg-purple-950/40 text-white overflow-hidden">
       <CardHeader>
-        <CardTitle>League Table — 2025/26</CardTitle>
-        <p className="text-purple-100/70 text-sm">All 20 clubs ranked by Points › GD › GF.</p>
+        <CardTitle>League Table — {season}</CardTitle>
+        <p className="text-purple-100/70 text-sm">
+          Live standings · Points, then goal difference, then goals scored.
+        </p>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -77,159 +267,184 @@ const Standings = () => {
                 <TableHead className="text-purple-200 text-center">GA</TableHead>
                 <TableHead className="text-purple-200 text-center">GD</TableHead>
                 <TableHead className="text-purple-200 text-center font-bold">Pts</TableHead>
-                <TableHead className="text-purple-200 hidden md:table-cell">Form</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((r, i) => {
-                const team = teamById(r.teamId);
-                return (
-                  <TableRow key={r.teamId} className="border-purple-400/10 hover:bg-purple-900/40">
-                    <TableCell className="font-semibold">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 min-w-[140px]">
-                        <TeamLogo src={team.logo} alt={team.name} />
-                        <span className="font-medium">{team.shortName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">{r.played}</TableCell>
-                    <TableCell className="text-center">{r.won}</TableCell>
-                    <TableCell className="text-center">{r.drawn}</TableCell>
-                    <TableCell className="text-center">{r.lost}</TableCell>
-                    <TableCell className="text-center">{r.gf}</TableCell>
-                    <TableCell className="text-center">{r.ga}</TableCell>
-                    <TableCell className={`text-center ${r.gd > 0 ? 'text-green-400' : r.gd < 0 ? 'text-red-400' : ''}`}>
-                      {r.gd > 0 ? '+' : ''}{r.gd}
-                    </TableCell>
-                    <TableCell className="text-center font-bold text-white">{r.points}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex gap-1">
-                        {r.form.map((f, idx) => <FormPill key={idx} r={f} />)}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {rows.map((row) => (
+                <TableRow key={row.team.id} className="border-purple-400/10 hover:bg-purple-900/40">
+                  <TableCell className="font-semibold">{row.position}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      {row.team.crest && <TeamLogo src={row.team.crest} alt={row.team.name} />}
+                      <span className="font-medium">{row.team.shortName || row.team.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">{row.playedGames}</TableCell>
+                  <TableCell className="text-center">{row.won}</TableCell>
+                  <TableCell className="text-center">{row.draw}</TableCell>
+                  <TableCell className="text-center">{row.lost}</TableCell>
+                  <TableCell className="text-center">{row.goalsFor}</TableCell>
+                  <TableCell className="text-center">{row.goalsAgainst}</TableCell>
+                  <TableCell className={`text-center ${row.goalDifference > 0 ? 'text-green-400' : row.goalDifference < 0 ? 'text-red-400' : ''}`}>
+                    {row.goalDifference > 0 ? '+' : ''}{row.goalDifference}
+                  </TableCell>
+                  <TableCell className="text-center font-bold text-white">{row.points}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
+        <p className="px-4 py-3 text-xs text-purple-200/60">Data provided by football-data.org</p>
       </CardContent>
     </Card>
   );
 };
 
-const FixtureRow = ({ id, homeId, awayId, kickoff, stadium, competition, status, homeScore, awayScore, minute }: typeof PL_FIXTURES[number]) => {
-  const home = teamById(homeId);
-  const away = teamById(awayId);
+const MatchCard = ({ match }: { match: PLMatch }) => {
+  const isFinished = match.status === 'FINISHED';
+  const isLive = ['IN_PLAY', 'PAUSED', 'EXTRA_TIME', 'PENALTY_SHOOTOUT'].includes(match.status);
+  const homeScore = match.score?.fullTime?.home;
+  const awayScore = match.score?.fullTime?.away;
+
   return (
-    <div key={id} className="rounded-lg border border-purple-400/20 bg-purple-900/30 p-3 sm:p-4 hover:bg-purple-900/50 transition">
-      <div className="flex items-center justify-between text-xs text-purple-200/70 mb-2">
-        <span>{competition} • {stadium}</span>
-        {status === 'live' && <Badge className="bg-red-500 text-white animate-pulse">LIVE {minute}'</Badge>}
-        {status === 'finished' && <Badge variant="outline" className="border-purple-400/40 text-purple-100">FT</Badge>}
-        {status === 'upcoming' && <Badge variant="outline" className="border-purple-400/40 text-purple-100">{formatKickoff(kickoff)}</Badge>}
+    <div className="rounded-lg border border-purple-400/20 bg-purple-900/30 p-3 sm:p-4 hover:bg-purple-900/50 transition">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-purple-200/70">
+        <span>{match.competition?.name || 'Premier League'}{match.venue ? ` â€¢ ${match.venue}` : ''}</span>
+        {isLive ? (
+          <Badge className="bg-red-500 text-white animate-pulse">LIVE</Badge>
+        ) : isFinished ? (
+          <Badge variant="outline" className="border-purple-400/40 text-purple-100">FT</Badge>
+        ) : (
+          <Badge variant="outline" className="border-purple-400/40 text-purple-100">
+            {new Date(match.utcDate).toLocaleString(undefined, {
+              weekday: 'short', day: 'numeric', month: 'short',
+              hour: '2-digit', minute: '2-digit',
+            })}
+          </Badge>
+        )}
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
-        <div className="flex items-center gap-2 sm:gap-3 justify-end text-right min-w-0">
-          <span className="font-semibold text-white truncate">{home.shortName}</span>
-          <TeamLogo src={home.logo} alt={home.name} className="h-7 w-7 sm:h-8 sm:w-8" />
+        <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+          <span className="truncate font-semibold text-white">{match.homeTeam.shortName || match.homeTeam.name}</span>
+          {match.homeTeam.crest && <TeamLogo src={match.homeTeam.crest} alt={match.homeTeam.name} className="h-7 w-7 sm:h-8 sm:w-8" />}
         </div>
-        <div className="text-center font-black text-white text-lg sm:text-xl tabular-nums">
-          {status === 'upcoming'
-            ? <span className="text-purple-200/80 text-sm">vs</span>
-            : <>{homeScore} <span className="text-purple-300/60">-</span> {awayScore}</>}
+        <div className="text-center text-lg font-black text-white tabular-nums">
+          {homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined
+            ? `${homeScore} - ${awayScore}`
+            : <span className="text-sm text-purple-200/80">vs</span>}
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <TeamLogo src={away.logo} alt={away.name} className="h-7 w-7 sm:h-8 sm:w-8" />
-          <span className="font-semibold text-white truncate">{away.shortName}</span>
+        <div className="flex min-w-0 items-center gap-2">
+          {match.awayTeam.crest && <TeamLogo src={match.awayTeam.crest} alt={match.awayTeam.name} className="h-7 w-7 sm:h-8 sm:w-8" />}
+          <span className="truncate font-semibold text-white">{match.awayTeam.shortName || match.awayTeam.name}</span>
         </div>
       </div>
     </div>
   );
 };
 
-const Fixtures = () => {
-  const live = PL_FIXTURES.filter(f => f.status === 'live');
-  const upcoming = PL_FIXTURES.filter(f => f.status === 'upcoming').sort((a, b) => +new Date(a.kickoff) - +new Date(b.kickoff));
-  const finished = PL_FIXTURES.filter(f => f.status === 'finished').sort((a, b) => +new Date(b.kickoff) - +new Date(a.kickoff));
-  return (
-    <div className="space-y-6">
-      {live.length > 0 && (
-        <Card className="border-red-500/40 bg-purple-950/40 text-white">
-          <CardHeader><CardTitle className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" /> Live Now</CardTitle></CardHeader>
-          <CardContent className="space-y-2">{live.map(f => <FixtureRow key={f.id} {...f} />)}</CardContent>
-        </Card>
-      )}
-      <Card className="border-purple-400/30 bg-purple-950/40 text-white">
-        <CardHeader><CardTitle>Upcoming Fixtures</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          {upcoming.length === 0 ? <p className="text-purple-200/70 text-sm">No upcoming fixtures.</p> : upcoming.map(f => <FixtureRow key={f.id} {...f} />)}
+const MatchListState = ({ loading, error, onRetry, children }: {
+  loading: boolean;
+  error: string;
+  onRetry: () => void;
+  children: React.ReactNode;
+}) => {
+  if (loading) return <p className="p-4 text-purple-100">Loading Premier League matches...</p>;
+  if (error) {
+    return (
+      <Card className="border-red-400/30 bg-purple-950/40 text-white">
+        <CardContent className="space-y-3 p-4">
+          <p>Unable to load matches: {error}</p>
+          <Button onClick={onRetry}>Try Again</Button>
         </CardContent>
       </Card>
-      <Card className="border-purple-400/30 bg-purple-950/40 text-white">
-        <CardHeader><CardTitle>Completed</CardTitle></CardHeader>
-        <CardContent className="space-y-2">{finished.map(f => <FixtureRow key={f.id} {...f} />)}</CardContent>
-      </Card>
-    </div>
+    );
+  }
+  return <>{children}</>;
+};
+
+const Fixtures = ({ refreshKey }: { refreshKey: number }) => {
+  const [matches, setMatches] = useState<PLMatch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadFixtures = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setMatches(await fetchPLMatches('fixtures'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load fixtures.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void loadFixtures(); }, [refreshKey]);
+
+  const live = matches.filter((m) => ['IN_PLAY', 'PAUSED', 'EXTRA_TIME', 'PENALTY_SHOOTOUT'].includes(m.status));
+  const upcoming = matches
+    .filter((m) => ['SCHEDULED', 'TIMED'].includes(m.status))
+    .sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+
+  return (
+    <MatchListState loading={loading} error={error} onRetry={loadFixtures}>
+      <div className="space-y-6">
+        <Card className="border-red-500/40 bg-purple-950/40 text-white">
+          <CardHeader><CardTitle>Live Now</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {live.length ? live.map((match) => <MatchCard key={match.id} match={match} />) : (
+              <p className="text-sm text-purple-200/70">No matches currently marked as live.</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+          <CardHeader><CardTitle>Upcoming Fixtures</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {upcoming.length ? upcoming.map((match) => <MatchCard key={match.id} match={match} />) : (
+              <p className="text-sm text-purple-200/70">No upcoming fixtures returned by the API.</p>
+            )}
+          </CardContent>
+        </Card>
+        <p className="text-xs text-purple-200/60">Data provided by football-data.org</p>
+        <Button onClick={loadFixtures}>Refresh Fixtures</Button>
+      </div>
+    </MatchListState>
   );
 };
 
-const Results = () => {
-  const finished = PL_FIXTURES.filter(f => f.status === 'finished')
-    .sort((a, b) => +new Date(b.kickoff) - +new Date(a.kickoff));
+const Results = ({ refreshKey }: { refreshKey: number }) => {
+  const [matches, setMatches] = useState<PLMatch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadResults = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await fetchPLMatches('results');
+      setMatches(data.filter((match) => match.status === 'FINISHED')
+        .sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime()));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load results.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void loadResults(); }, [refreshKey]);
+
   return (
-    <div className="space-y-4">
-      {finished.map(f => {
-        const events = MATCH_EVENTS[f.id] ?? [];
-        const home = teamById(f.homeId);
-        const away = teamById(f.awayId);
-        return (
-          <Card key={f.id} className="border-purple-400/30 bg-purple-950/40 text-white">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between text-xs text-purple-200/70">
-                <span>{f.competition} • {f.stadium}</span>
-                <span>{new Date(f.kickoff).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              </div>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mt-2">
-                <div className="flex items-center gap-3 justify-end text-right">
-                  <span className="font-bold">{home.shortName}</span>
-                  <TeamLogo src={home.logo} alt={home.name} className="h-10 w-10" />
-                </div>
-                <div className="text-2xl font-black tabular-nums">{f.homeScore} - {f.awayScore}</div>
-                <div className="flex items-center gap-3">
-                  <TeamLogo src={away.logo} alt={away.name} className="h-10 w-10" />
-                  <span className="font-bold">{away.shortName}</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {events.length === 0 ? (
-                <p className="text-purple-200/60 text-sm text-center">No event data available.</p>
-              ) : (
-                <ul className="divide-y divide-purple-400/10">
-                  {events.map((e, i) => {
-                    const t = teamById(e.teamId);
-                    const icon =
-                      e.type === 'goal' ? '⚽' :
-                      e.type === 'yellow' ? '🟨' :
-                      e.type === 'red' ? '🟥' : '🅰️';
-                    return (
-                      <li key={i} className="py-2 flex items-center gap-3 text-sm">
-                        <span className="w-10 text-purple-200/80 tabular-nums">{e.minute}'</span>
-                        <span>{icon}</span>
-                        <TeamLogo src={t.logo} alt={t.name} className="h-5 w-5" />
-                        <span className="font-medium text-white">{e.player}</span>
-                        {e.assist && <span className="text-purple-200/70 text-xs">(assist: {e.assist})</span>}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CardContent>
+    <MatchListState loading={loading} error={error} onRetry={loadResults}>
+      <div className="space-y-4">
+        {matches.length ? matches.map((match) => <MatchCard key={match.id} match={match} />) : (
+          <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+            <CardContent className="p-4">No completed matches were returned by the API.</CardContent>
           </Card>
-        );
-      })}
-    </div>
+        )}
+        <p className="text-xs text-purple-200/60">Data provided by football-data.org</p>
+        <Button onClick={loadResults}>Refresh Results</Button>
+      </div>
+    </MatchListState>
   );
 };
 
@@ -265,6 +480,206 @@ const Clubs = () => {
   );
 };
 
+
+const Statistics = ({ refreshKey }: { refreshKey: number }) => {
+  const [scorers, setScorers] = useState<PLScorer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [view, setView] = useState<'goals' | 'assists'>('goals');
+
+  const loadScorers = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setScorers(await fetchPLScorers());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load player statistics.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadScorers();
+  }, [refreshKey]);
+
+  const rankedScorers = [...scorers].sort((a, b) =>
+    b.goals - a.goals || a.player.name.localeCompare(b.player.name)
+  );
+  const rankedAssists = scorers
+    .filter((player) => typeof player.assists === 'number')
+    .sort((a, b) =>
+      (b.assists ?? 0) - (a.assists ?? 0) ||
+      b.goals - a.goals ||
+      a.player.name.localeCompare(b.player.name)
+    );
+
+  if (loading) {
+    return (
+      <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+        <CardContent className="p-6">Loading live Premier League statistics...</CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-red-400/30 bg-purple-950/40 text-white">
+        <CardContent className="space-y-3 p-6">
+          <p>Unable to load player statistics: {error}</p>
+          <Button onClick={loadScorers}>Try Again</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const activeRows = view === 'goals' ? rankedScorers : rankedAssists;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-white">Premier League Player Statistics</h2>
+          <p className="text-sm text-purple-200/70">
+            Live data provided by football-data.org
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={() => setView('goals')}
+            variant={view === 'goals' ? 'default' : 'outline'}
+            className={view === 'goals'
+              ? 'bg-purple-500 text-white hover:bg-purple-400'
+              : 'border-purple-400/30 bg-purple-950/40 text-purple-100 hover:bg-purple-900/60'}
+          >
+            Top Scorers
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setView('assists')}
+            variant={view === 'assists' ? 'default' : 'outline'}
+            className={view === 'assists'
+              ? 'bg-purple-500 text-white hover:bg-purple-400'
+              : 'border-purple-400/30 bg-purple-950/40 text-purple-100 hover:bg-purple-900/60'}
+          >
+            Most Assists
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+          <CardContent className="p-4">
+            <p className="text-sm text-purple-200/70">Players returned</p>
+            <p className="mt-1 text-2xl font-black">{scorers.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+          <CardContent className="p-4">
+            <p className="text-sm text-purple-200/70">Top goal tally</p>
+            <p className="mt-1 text-2xl font-black">
+              {rankedScorers[0]?.goals ?? '—'}
+            </p>
+            <p className="text-xs text-purple-200/70">
+              {rankedScorers[0]?.player.name ?? 'No scorer data'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-400/30 bg-purple-950/40 text-white">
+          <CardContent className="p-4">
+            <p className="text-sm text-purple-200/70">Most assists returned</p>
+            <p className="mt-1 text-2xl font-black">
+              {rankedAssists[0]?.assists ?? '—'}
+            </p>
+            <p className="text-xs text-purple-200/70">
+              {rankedAssists[0]?.player.name ?? 'No assist data available'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="overflow-hidden border-purple-400/30 bg-purple-950/40 text-white">
+        <CardHeader>
+          <CardTitle>{view === 'goals' ? 'Top Scorers' : 'Most Assists'}</CardTitle>
+          <p className="text-sm text-purple-200/70">
+            {view === 'goals'
+              ? 'Players ranked by goals scored.'
+              : 'Players with reported assist totals, ranked by assists.'}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          {activeRows.length === 0 ? (
+            <p className="p-6 text-sm text-purple-200/70">
+              The provider has not returned data for this statistic.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-purple-400/20 hover:bg-transparent">
+                    <TableHead className="w-12 text-purple-200">#</TableHead>
+                    <TableHead className="text-purple-200">Player</TableHead>
+                    <TableHead className="text-purple-200">Club</TableHead>
+                    <TableHead className="text-center text-purple-200">Apps</TableHead>
+                    {view === 'goals' && (
+                      <TableHead className="text-center text-purple-200">Pens</TableHead>
+                    )}
+                    <TableHead className="text-center font-bold text-purple-100">
+                      {view === 'goals' ? 'Goals' : 'Assists'}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeRows.map((row, index) => (
+                    <TableRow key={row.player.id} className="border-purple-400/10 hover:bg-purple-900/40">
+                      <TableCell className="font-semibold">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex min-w-[150px] items-center gap-2">
+                          <span className="font-medium">{row.player.name}</span>
+                        </div>
+                        {row.player.nationality && (
+                          <p className="text-xs text-purple-200/60">{row.player.nationality}</p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex min-w-[130px] items-center gap-2">
+                          {row.team.crest && (
+                            <TeamLogo src={row.team.crest} alt={row.team.name} className="h-6 w-6" />
+                          )}
+                          <span>{row.team.shortName || row.team.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">{row.playedMatches}</TableCell>
+                      {view === 'goals' && (
+                        <TableCell className="text-center">
+                          {row.penalties === null ? '—' : row.penalties}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-center text-lg font-black text-white">
+                        {view === 'goals' ? row.goals : row.assists}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <p className="px-4 py-3 text-xs text-purple-200/60">
+            Data provided by football-data.org. The provider returns a limited top-scorers list;
+            the assists view ranks only players in that response with reported assist totals.
+            A dash means the provider did not supply that value.
+          </p>
+        </CardContent>
+      </Card>
+      <Button onClick={loadScorers} disabled={loading}>
+        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        Refresh Statistics
+      </Button>
+    </div>
+  );
+};
+
 const ComingSoon = ({ title, description }: { title: string; description: string }) => (
   <Card className="border-purple-400/30 bg-purple-950/40 text-white">
     <CardHeader>
@@ -286,6 +701,7 @@ const PremierLeague = () => {
   const [section, setSection] = useState<Section>('overview');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   if (loading) {
     return (
@@ -307,21 +723,20 @@ const PremierLeague = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setLastUpdated(new Date());
-      setRefreshing(false);
-    }, 600);
+    setRefreshKey((key) => key + 1);
+    setLastUpdated(new Date());
+    window.setTimeout(() => setRefreshing(false), 500);
   };
 
   const renderSection = () => {
     switch (section) {
-      case 'overview':   return <Standings />;
-      case 'fixtures':   return <Fixtures />;
-      case 'results':    return <Results />;
+      case 'overview':   return <Standings refreshKey={refreshKey} />;
+      case 'fixtures':   return <Fixtures refreshKey={refreshKey} />;
+      case 'results':    return <Results refreshKey={refreshKey} />;
       case 'clubs':      return <Clubs />;
       case 'players':    return <ComingSoon title="Players Database" description="Searchable player profiles with stats, photos, and club info." />;
       case 'transfers':  return <ComingSoon title="Transfer Centre" description="Confirmed transfers, rumours, and breaking updates." />;
-      case 'statistics': return <ComingSoon title="Statistics" description="Top scorers, assists, clean sheets, cards and more." />;
+      case 'statistics': return <Statistics refreshKey={refreshKey} />;
       case 'injuries':   return <ComingSoon title="Injury Centre" description="Latest injury news with expected return dates." />;
     }
   };
